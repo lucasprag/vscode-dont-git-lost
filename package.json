@@ -20,10 +20,10 @@
   "activationEvents": ["onStartupFinished"],
   "contributes": {
     "commands": [
-      { "command": "gitlost.timeTravel.back", "title": "Git Lost: Previous Version", "icon": "$(arrow-left)" },
-      { "command": "gitlost.timeTravel.backWithDiff", "title": "Git Lost: Previous Version (Show Diff)", "icon": "$(chevron-left)" },
-      { "command": "gitlost.timeTravel.forwardWithDiff", "title": "Git Lost: Next Version (Show Diff)", "icon": "$(chevron-right)" },
-      { "command": "gitlost.timeTravel.forward", "title": "Git Lost: Next Version", "icon": "$(arrow-right)" },
+      { "command": "gitlost.timeTravel.back", "title": "Git Lost: Previous Version (Overlay)", "icon": "$(arrow-left)" },
+      { "command": "gitlost.timeTravel.backWithDiff", "title": "Git Lost: Previous Version (Diff Editor)", "icon": "$(chevron-left)" },
+      { "command": "gitlost.timeTravel.forwardWithDiff", "title": "Git Lost: Next Version (Diff Editor)", "icon": "$(chevron-right)" },
+      { "command": "gitlost.timeTravel.forward", "title": "Git Lost: Next Version (Overlay)", "icon": "$(arrow-right)" },
       { "command": "gitlost.timeTravel.returnToHead", "title": "Git Lost: Return to HEAD", "icon": "$(home)" },
       { "command": "gitlost.copySha", "title": "Git Lost: Copy SHA" },
       { "command": "gitlost.openUrl", "title": "Git Lost: Open URL" },

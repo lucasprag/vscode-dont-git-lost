@@ -54,4 +54,11 @@ export class Navigator {
     const state = this.states.get(filePath);
     if (state) state.index = index;
   }
+
+  /** Return the next-older commit ref (one step further back) without moving the index. */
+  parentRef(filePath: string): CommitRef | undefined {
+    const state = this.states.get(filePath);
+    if (!state) return undefined;
+    return state.commits[state.index + 1];
+  }
 }

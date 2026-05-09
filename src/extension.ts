@@ -92,29 +92,36 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return undefined;
   };
 
+  const tabBelongsToTimeTravel = (tab: vscode.Tab | undefined): boolean => {
+    if (!tab) return false;
+    if (tab.input instanceof vscode.TabInputText) return tab.input.uri.scheme === SCHEME;
+    if (tab.input instanceof vscode.TabInputTextDiff) {
+      return tab.input.original.scheme === SCHEME || tab.input.modified.scheme === SCHEME;
+    }
+    return false;
+  };
+
   const openTarget = async (
     direction: 'back' | 'forward' | 'returnToHead',
     target: { sha: string; prevPath: string } | 'head' | 'noop',
     navKey: string,
-    withDiff = false,
+    mode: 'overlay' | 'diff-editor' = 'overlay',
   ) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
     if (target === 'noop') return;
 
-    // Capture the active tab so we can close it if it's a historical view we're
+    // Capture the active tab so we can close it if it's a time-travel view we're
     // about to navigate away from (so back/forward replaces instead of stacking).
     const previousTab = vscode.window.tabGroups.activeTabGroup.activeTab;
-    const previousTabIsHistorical =
-      previousTab?.input instanceof vscode.TabInputText &&
-      previousTab.input.uri.scheme === SCHEME;
+    const previousTabIsTimeTravel = tabBelongsToTimeTravel(previousTab);
 
     if (target === 'head') {
       const payload = readPayload(editor.document.uri);
       if (!payload) return;
       const fileUri = vscode.Uri.file(`${payload.repoRoot.replace(/\\/g, '/')}/${payload.relPath}`);
       await vscode.window.showTextDocument(fileUri, { viewColumn: editor.viewColumn ?? vscode.ViewColumn.Active, preview: false });
-      if (previousTabIsHistorical && previousTab) {
+      if (previousTabIsTimeTravel && previousTab) {
         await vscode.window.tabGroups.close(previousTab);
       }
       return;
@@ -139,7 +146,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     try {
       await contentCache.get(repoRoot, target.sha, target.prevPath);
     } catch {
-      // rewind: undo whatever the navigator just did
       if (direction === 'back') await navigator.forward(navKey);
       else if (direction === 'forward') await navigator.back(navKey);
       vscode.window.setStatusBarMessage(`Git Lost: file not present at ${target.sha.slice(0, 7)}`, 3000);
@@ -156,33 +162,61 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const dirty = editor.document.isDirty;
     const viewColumn = dirty ? vscode.ViewColumn.Beside : (editor.viewColumn ?? vscode.ViewColumn.Active);
-    const doc = await vscode.workspace.openTextDocument(uri);
-    await vscode.window.showTextDocument(doc, { viewColumn, preview: false });
 
-    // Compute and apply diff decorations vs parent commit (only when requested).
-    if (withDiff) {
-      const parent = await gitEngine.parentSha(repoRoot, target.sha);
-      if (parent) {
-        const diffText = await gitEngine.diffUnified(repoRoot, parent, target.sha, target.prevPath);
-        const ranges = parseUnifiedDiff(diffText);
-        diffDecorations.setHunks(uri, ranges);
+    if (mode === 'diff-editor') {
+      // Open VS Code's diff editor showing parent vs current. The parent path
+      // may differ from the current path if this commit renamed the file —
+      // try the navigator's next-older entry for the previous path.
+      const parentSha = await gitEngine.parentSha(repoRoot, target.sha);
+      if (!parentSha) {
+        // Root commit: no parent to diff against. Fall back to overlay mode
+        // (whole file rendered as added).
+        await openInOverlayMode(uri, repoRoot, target, viewColumn);
       } else {
-        // Root commit — every line is "added". Mark the whole file.
-        const lineCount = doc.lineCount;
-        diffDecorations.setHunks(uri, {
-          added: lineCount > 0 ? [{ start: 1, end: lineCount }] : [],
-          deletedAbove: [],
+        const parentRef = navigator.parentRef(navKey);
+        const parentPath = parentRef?.prevPath ?? target.prevPath;
+        const leftUri = buildHistoricalUri({
+          repoRoot,
+          relPath: parentPath,
+          sha: parentSha,
+          prevPath: parentPath,
+        });
+        const title = `${target.prevPath.split('/').pop()} (${parentSha.slice(0, 7)} ↔ ${target.sha.slice(0, 7)})`;
+        diffDecorations.clear(uri);
+        diffDecorations.clear(leftUri);
+        await vscode.commands.executeCommand('vscode.diff', leftUri, uri, title, {
+          viewColumn,
+          preview: false,
         });
       }
     } else {
-      diffDecorations.clear(uri);
+      await openInOverlayMode(uri, repoRoot, target, viewColumn);
     }
 
-    // If we just navigated FROM one historical tab TO another in the same column,
-    // close the old one so the user has a single time-travel tab open at a time.
-    // Don't close the working-copy tab, and don't close when opening Beside (dirty).
-    if (previousTabIsHistorical && previousTab && viewColumn !== vscode.ViewColumn.Beside) {
+    if (previousTabIsTimeTravel && previousTab && viewColumn !== vscode.ViewColumn.Beside) {
       await vscode.window.tabGroups.close(previousTab);
+    }
+  };
+
+  const openInOverlayMode = async (
+    uri: vscode.Uri,
+    repoRoot: string,
+    target: { sha: string; prevPath: string },
+    viewColumn: vscode.ViewColumn,
+  ) => {
+    const doc = await vscode.workspace.openTextDocument(uri);
+    await vscode.window.showTextDocument(doc, { viewColumn, preview: false });
+
+    const parent = await gitEngine.parentSha(repoRoot, target.sha);
+    if (parent) {
+      const diffText = await gitEngine.diffUnified(repoRoot, parent, target.sha, target.prevPath);
+      diffDecorations.setHunks(uri, parseUnifiedDiff(diffText));
+    } else {
+      // Root commit: every line is "added".
+      diffDecorations.setHunks(uri, {
+        added: doc.lineCount > 0 ? [{ start: 1, end: doc.lineCount }] : [],
+        deletedAbove: [],
+      });
     }
   };
 
@@ -200,7 +234,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.back(key);
-      await openTarget('back', target, key, false);
+      await openTarget('back', target, key, 'overlay');
       updateContextKeys();
       statusBadge.refresh();
     }),
@@ -208,7 +242,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.forward(key);
-      await openTarget('forward', target, key, false);
+      await openTarget('forward', target, key, 'overlay');
       updateContextKeys();
       statusBadge.refresh();
     }),
@@ -216,7 +250,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.back(key);
-      await openTarget('back', target, key, true);
+      await openTarget('back', target, key, 'diff-editor');
       updateContextKeys();
       statusBadge.refresh();
     }),
@@ -224,7 +258,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.forward(key);
-      await openTarget('forward', target, key, true);
+      await openTarget('forward', target, key, 'diff-editor');
       updateContextKeys();
       statusBadge.refresh();
     }),
@@ -232,7 +266,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       navigator.returnToHead(key);
-      await openTarget('returnToHead', 'head', key, false);
+      await openTarget('returnToHead', 'head', key, 'overlay');
       updateContextKeys();
       statusBadge.refresh();
     }),
