@@ -17,7 +17,7 @@ export class BitbucketClient implements HostClient {
     return h;
   }
 
-  async resolveAvatar(_email: string): Promise<string | undefined> {
+  async resolveAvatar(_email: string, _sha: string): Promise<string | undefined> {
     // Bitbucket Cloud doesn't expose a public "user by email" endpoint without admin scope.
     // Skip avatar lookup; return undefined so the hover card falls back to no avatar.
     return undefined;

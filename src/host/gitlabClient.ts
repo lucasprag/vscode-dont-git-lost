@@ -18,7 +18,7 @@ export class GitlabClient implements HostClient {
     return encodeURIComponent(`${this.host.owner}/${this.host.repo}`);
   }
 
-  async resolveAvatar(email: string): Promise<string | undefined> {
+  async resolveAvatar(email: string, _sha: string): Promise<string | undefined> {
     if (this.avatarCache.has(email)) return this.avatarCache.get(email);
     try {
       const url = `${this.host.baseUrl}/users?search=${encodeURIComponent(email)}`;

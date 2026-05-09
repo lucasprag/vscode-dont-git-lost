@@ -48,7 +48,7 @@ export class GitLostHoverProvider implements vscode.HoverProvider {
         if (client) {
           commitUrl = client.commitUrl(entry.commit.sha);
           [avatarUrl, pr] = await Promise.all([
-            client.resolveAvatar(entry.commit.authorEmail),
+            client.resolveAvatar(entry.commit.authorEmail, entry.commit.sha),
             client.resolvePr(entry.commit.sha),
           ]);
           if (host.type === 'github' && !(await this.auth.getGithubToken(true))) {

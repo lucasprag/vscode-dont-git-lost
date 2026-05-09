@@ -5,25 +5,31 @@ import type { AuthBroker } from '../auth/authBroker';
 export class GithubClient implements HostClient {
   private avatarCache = new Map<string, string | undefined>();
   private prCache = new Map<string, PrInfo | undefined>();
+  private octokitInstance: Octokit | undefined;
 
   constructor(private host: HostInfo, private auth: AuthBroker) {}
 
   private async octokit(): Promise<Octokit> {
+    if (this.octokitInstance) return this.octokitInstance;
     const token = await this.auth.getGithubToken(true);
-    return new Octokit({ auth: token, baseUrl: this.host.baseUrl });
+    this.octokitInstance = new Octokit({ auth: token, baseUrl: this.host.baseUrl });
+    return this.octokitInstance;
   }
 
-  async resolveAvatar(email: string): Promise<string | undefined> {
-    if (this.avatarCache.has(email)) return this.avatarCache.get(email);
+  async resolveAvatar(_email: string, sha: string): Promise<string | undefined> {
+    if (this.avatarCache.has(sha)) return this.avatarCache.get(sha);
     try {
       const octokit = await this.octokit();
-      const res = await octokit.search.users({ q: `${email} in:email` });
-      const user = res.data.items[0];
-      const url = user?.avatar_url;
-      this.avatarCache.set(email, url);
+      const res = await octokit.repos.getCommit({
+        owner: this.host.owner,
+        repo: this.host.repo,
+        ref: sha,
+      });
+      const url = res.data.author?.avatar_url;
+      this.avatarCache.set(sha, url);
       return url;
     } catch {
-      this.avatarCache.set(email, undefined);
+      this.avatarCache.set(sha, undefined);
       return undefined;
     }
   }

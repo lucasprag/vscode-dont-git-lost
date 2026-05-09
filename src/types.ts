@@ -41,7 +41,7 @@ export interface PrInfo {
 }
 
 export interface HostClient {
-  resolveAvatar(email: string): Promise<string | undefined>;
+  resolveAvatar(email: string, sha: string): Promise<string | undefined>;
   resolvePr(sha: string): Promise<PrInfo | undefined>;
   commitUrl(sha: string): string;
 }
