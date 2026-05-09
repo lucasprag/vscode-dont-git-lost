@@ -25,6 +25,16 @@ export class GitLostHoverProvider implements vscode.HoverProvider {
     const entry = blame.find((b) => b.lineNumber === position.line);
     if (!entry || entry.isUncommitted) return undefined;
 
+    let commitBody = entry.commit.body;
+    if (!commitBody) {
+      try {
+        commitBody = await this.gitEngine.commitBody(match.repoRoot, entry.commit.sha);
+      } catch {
+        commitBody = '';
+      }
+    }
+    const commit = { ...entry.commit, body: commitBody };
+
     let avatarUrl: string | undefined;
     let commitUrl: string | undefined;
     let pr: { number: number; title: string; url: string } | undefined;
@@ -54,7 +64,7 @@ export class GitLostHoverProvider implements vscode.HoverProvider {
 
     const md = new vscode.MarkdownString(
       buildHoverMarkdown({
-        commit: entry.commit,
+        commit,
         avatarUrl,
         commitUrl,
         pr,

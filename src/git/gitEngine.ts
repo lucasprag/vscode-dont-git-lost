@@ -59,6 +59,11 @@ export class GitEngine {
     const { stdout } = await this.exec(repoRoot, ['show', `${sha}:${relPath}`]);
     return stdout;
   }
+
+  async commitBody(repoRoot: string, sha: string): Promise<string> {
+    const { stdout } = await this.exec(repoRoot, ['log', '-1', '--format=%b', sha]);
+    return stdout.replace(/\n+$/, '');
+  }
 }
 
 export function parseLogFollow(out: string): CommitRef[] {
