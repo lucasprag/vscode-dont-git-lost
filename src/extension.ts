@@ -98,11 +98,21 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (!editor) return;
     if (target === 'noop') return;
 
+    // Capture the active tab so we can close it if it's a historical view we're
+    // about to navigate away from (so back/forward replaces instead of stacking).
+    const previousTab = vscode.window.tabGroups.activeTabGroup.activeTab;
+    const previousTabIsHistorical =
+      previousTab?.input instanceof vscode.TabInputText &&
+      previousTab.input.uri.scheme === SCHEME;
+
     if (target === 'head') {
       const payload = readPayload(editor.document.uri);
       if (!payload) return;
       const fileUri = vscode.Uri.file(`${payload.repoRoot.replace(/\\/g, '/')}/${payload.relPath}`);
       await vscode.window.showTextDocument(fileUri, { viewColumn: editor.viewColumn ?? vscode.ViewColumn.Active, preview: false });
+      if (previousTabIsHistorical && previousTab) {
+        await vscode.window.tabGroups.close(previousTab);
+      }
       return;
     }
 
@@ -144,6 +154,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const viewColumn = dirty ? vscode.ViewColumn.Beside : (editor.viewColumn ?? vscode.ViewColumn.Active);
     const doc = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(doc, { viewColumn, preview: false });
+
+    // If we just navigated FROM one historical tab TO another in the same column,
+    // close the old one so the user has a single time-travel tab open at a time.
+    // Don't close the working-copy tab, and don't close when opening Beside (dirty).
+    if (previousTabIsHistorical && previousTab && viewColumn !== vscode.ViewColumn.Beside) {
+      await vscode.window.tabGroups.close(previousTab);
+    }
   };
 
   context.subscriptions.push(
