@@ -7,7 +7,14 @@ import { RepoLocator } from './git/repoLocator';
 import { LineBlame } from './blame/lineBlame';
 import { GitLostHoverProvider } from './hover/hoverProvider';
 import { Navigator } from './timeTravel/navigator';
-import { HistoricalDocProvider, SCHEME, buildHistoricalUri, readPayload } from './timeTravel/historicalDoc';
+import {
+  HistoricalDocProvider,
+  SCHEME,
+  buildOverlayUri,
+  buildDiffParentUri,
+  buildDiffCurrentUri,
+  readPayload,
+} from './timeTravel/historicalDoc';
 import { StatusBadge } from './timeTravel/statusBadge';
 import { DiffDecorations } from './timeTravel/diffDecorations';
 import { parseUnifiedDiff } from './timeTravel/diffParser';
@@ -39,7 +46,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const contentCache = new ContentCache((repoRoot, sha, relPath) => gitEngine.show(repoRoot, sha, relPath));
   const auth = new AuthBroker();
 
-  // Navigator's fetcher uses the working-copy file path as its key.
   const navigator = new Navigator(async (filePath) => {
     const fileUri = vscode.Uri.file(filePath);
     const match = repoLocator.locate(fileUri);
@@ -47,7 +53,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return historyCache.get(match.relPath, match.headSha);
   });
 
-  // Cache commit metadata for status badge tooltip.
   const commitMeta = new Map<string, CommitInfo>();
   const recordCommitMeta = (info: CommitInfo) => commitMeta.set(info.sha, info);
 
@@ -92,14 +97,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return undefined;
   };
 
-  const tabBelongsToTimeTravel = (tab: vscode.Tab | undefined): boolean => {
-    if (!tab) return false;
-    if (tab.input instanceof vscode.TabInputText) return tab.input.uri.scheme === SCHEME;
-    if (tab.input instanceof vscode.TabInputTextDiff) {
-      return tab.input.original.scheme === SCHEME || tab.input.modified.scheme === SCHEME;
+  /** Find an existing tab whose URI matches the predicate. */
+  const findTab = (predicate: (tab: vscode.Tab) => boolean): vscode.Tab | undefined => {
+    for (const group of vscode.window.tabGroups.all) {
+      for (const tab of group.tabs) {
+        if (predicate(tab)) return tab;
+      }
     }
-    return false;
+    return undefined;
   };
+
+  const findOverlayTab = (overlayUri: vscode.Uri): vscode.Tab | undefined =>
+    findTab((tab) =>
+      tab.input instanceof vscode.TabInputText &&
+      tab.input.uri.toString() === overlayUri.toString());
+
+  const findDiffTab = (leftUri: vscode.Uri, rightUri: vscode.Uri): vscode.Tab | undefined =>
+    findTab((tab) =>
+      tab.input instanceof vscode.TabInputTextDiff &&
+      tab.input.original.toString() === leftUri.toString() &&
+      tab.input.modified.toString() === rightUri.toString());
 
   const openTarget = async (
     direction: 'back' | 'forward' | 'returnToHead',
@@ -111,19 +128,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (!editor) return;
     if (target === 'noop') return;
 
-    // Capture the active tab so we can close it if it's a time-travel view we're
-    // about to navigate away from (so back/forward replaces instead of stacking).
-    const previousTab = vscode.window.tabGroups.activeTabGroup.activeTab;
-    const previousTabIsTimeTravel = tabBelongsToTimeTravel(previousTab);
-
     if (target === 'head') {
       const payload = readPayload(editor.document.uri);
       if (!payload) return;
       const fileUri = vscode.Uri.file(`${payload.repoRoot.replace(/\\/g, '/')}/${payload.relPath}`);
-      await vscode.window.showTextDocument(fileUri, { viewColumn: editor.viewColumn ?? vscode.ViewColumn.Active, preview: false });
-      if (previousTabIsTimeTravel && previousTab) {
-        await vscode.window.tabGroups.close(previousTab);
-      }
+      await vscode.window.showTextDocument(fileUri, {
+        viewColumn: editor.viewColumn ?? vscode.ViewColumn.Active,
+        preview: false,
+      });
+      // Close any time-travel tabs for this file.
+      const overlayUri = buildOverlayUri(payload.repoRoot, payload.relPath);
+      const leftUri = buildDiffParentUri(payload.repoRoot, payload.relPath);
+      const rightUri = buildDiffCurrentUri(payload.repoRoot, payload.relPath);
+      const overlayTab = findOverlayTab(overlayUri);
+      const diffTab = findDiffTab(leftUri, rightUri);
+      if (overlayTab) await vscode.window.tabGroups.close(overlayTab);
+      if (diffTab) await vscode.window.tabGroups.close(diffTab);
       return;
     }
 
@@ -152,8 +172,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       return;
     }
 
-    const uri = buildHistoricalUri({ repoRoot, relPath, sha: target.sha, prevPath: target.prevPath });
-
     // best-effort metadata for status badge
     try {
       const blameLines = await blameCache.get(relPath, target.sha).catch(() => []);
@@ -161,63 +179,99 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     } catch { /* ignore */ }
 
     const dirty = editor.document.isDirty;
-    const viewColumn = dirty ? vscode.ViewColumn.Beside : (editor.viewColumn ?? vscode.ViewColumn.Active);
+    const fallbackColumn = dirty ? vscode.ViewColumn.Beside : (editor.viewColumn ?? vscode.ViewColumn.Active);
 
     if (mode === 'diff-editor') {
-      // Open VS Code's diff editor showing parent vs current. The parent path
-      // may differ from the current path if this commit renamed the file —
-      // try the navigator's next-older entry for the previous path.
-      const parentSha = await gitEngine.parentSha(repoRoot, target.sha);
-      if (!parentSha) {
-        // Root commit: no parent to diff against. Fall back to overlay mode
-        // (whole file rendered as added).
-        await openInOverlayMode(uri, repoRoot, target, viewColumn);
-      } else {
-        const parentRef = navigator.parentRef(navKey);
-        const parentPath = parentRef?.prevPath ?? target.prevPath;
-        const leftUri = buildHistoricalUri({
-          repoRoot,
-          relPath: parentPath,
-          sha: parentSha,
-          prevPath: parentPath,
-        });
-        const title = `${target.prevPath.split('/').pop()} (${parentSha.slice(0, 7)} ↔ ${target.sha.slice(0, 7)})`;
-        diffDecorations.clear(uri);
-        diffDecorations.clear(leftUri);
-        await vscode.commands.executeCommand('vscode.diff', leftUri, uri, title, {
-          viewColumn,
-          preview: false,
-        });
-      }
+      await openDiffEditor(repoRoot, relPath, target, navKey, fallbackColumn);
     } else {
-      await openInOverlayMode(uri, repoRoot, target, viewColumn);
-    }
-
-    if (previousTabIsTimeTravel && previousTab && viewColumn !== vscode.ViewColumn.Beside) {
-      await vscode.window.tabGroups.close(previousTab);
+      await openOverlay(repoRoot, relPath, target, fallbackColumn);
     }
   };
 
-  const openInOverlayMode = async (
-    uri: vscode.Uri,
+  /** Open or refresh the overlay tab for (repoRoot, relPath) at the given commit. */
+  const openOverlay = async (
     repoRoot: string,
+    relPath: string,
     target: { sha: string; prevPath: string },
-    viewColumn: vscode.ViewColumn,
+    fallbackColumn: vscode.ViewColumn,
   ) => {
-    const doc = await vscode.workspace.openTextDocument(uri);
+    const overlayUri = buildOverlayUri(repoRoot, relPath);
+    // setOverlay updates state and fires onDidChange so any open editor refreshes.
+    provider.setOverlay({
+      repoRoot,
+      relPath,
+      sha: target.sha,
+      prevPath: target.prevPath,
+    });
+
+    // If the tab already exists, focus it (don't open a new one). Otherwise open.
+    const existing = findOverlayTab(overlayUri);
+    const viewColumn = existing?.group.viewColumn ?? fallbackColumn;
+    const doc = await vscode.workspace.openTextDocument(overlayUri);
     await vscode.window.showTextDocument(doc, { viewColumn, preview: false });
 
+    // Compute and apply diff overlay decorations vs parent.
     const parent = await gitEngine.parentSha(repoRoot, target.sha);
     if (parent) {
       const diffText = await gitEngine.diffUnified(repoRoot, parent, target.sha, target.prevPath);
-      diffDecorations.setHunks(uri, parseUnifiedDiff(diffText));
+      diffDecorations.setHunks(overlayUri, parseUnifiedDiff(diffText));
     } else {
-      // Root commit: every line is "added".
-      diffDecorations.setHunks(uri, {
+      diffDecorations.setHunks(overlayUri, {
         added: doc.lineCount > 0 ? [{ start: 1, end: doc.lineCount }] : [],
         deletedAbove: [],
       });
     }
+  };
+
+  /** Open or refresh the diff-editor tab for (repoRoot, relPath) at the given commit. */
+  const openDiffEditor = async (
+    repoRoot: string,
+    relPath: string,
+    target: { sha: string; prevPath: string },
+    navKey: string,
+    fallbackColumn: vscode.ViewColumn,
+  ) => {
+    const parentSha = await gitEngine.parentSha(repoRoot, target.sha);
+    if (!parentSha) {
+      // Root commit: nothing to diff; fall back to overlay mode.
+      await openOverlay(repoRoot, relPath, target, fallbackColumn);
+      return;
+    }
+
+    const parentRef = navigator.parentRef(navKey);
+    const parentPath = parentRef?.prevPath ?? target.prevPath;
+
+    const { left, right } = provider.setDiff({
+      repoRoot,
+      relPath,
+      currentSha: target.sha,
+      currentPath: target.prevPath,
+      parentSha,
+      parentPath,
+    });
+
+    diffDecorations.clear(left);
+    diffDecorations.clear(right);
+
+    const existing = findDiffTab(left, right);
+    if (existing) {
+      // Tab already open — focus it. The provider's onDidChange has already
+      // fired, so VS Code will re-fetch and re-render the diff.
+      const filename = relPath.split('/').pop() ?? relPath;
+      const title = `${filename} (${parentSha.slice(0, 7)} ↔ ${target.sha.slice(0, 7)})`;
+      await vscode.commands.executeCommand('vscode.diff', left, right, title, {
+        viewColumn: existing.group.viewColumn,
+        preview: false,
+      });
+      return;
+    }
+
+    const filename = relPath.split('/').pop() ?? relPath;
+    const title = `${filename} (${parentSha.slice(0, 7)} ↔ ${target.sha.slice(0, 7)})`;
+    await vscode.commands.executeCommand('vscode.diff', left, right, title, {
+      viewColumn: fallbackColumn,
+      preview: false,
+    });
   };
 
   context.subscriptions.push(

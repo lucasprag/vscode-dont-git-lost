@@ -36,6 +36,14 @@ export class DiffDecorations implements vscode.Disposable {
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) this.refresh(editor);
       }),
+      // When the content of a git-lost: doc changes (we fired onDidChange),
+      // VS Code re-renders and may drop existing decorations. Re-apply them.
+      vscode.workspace.onDidChangeTextDocument((event) => {
+        if (event.document.uri.scheme !== SCHEME) return;
+        for (const editor of vscode.window.visibleTextEditors) {
+          if (editor.document === event.document) this.refresh(editor);
+        }
+      }),
       vscode.workspace.onDidCloseTextDocument((doc) => {
         if (doc.uri.scheme === SCHEME) {
           this.hunksPerUri.delete(doc.uri.toString());
