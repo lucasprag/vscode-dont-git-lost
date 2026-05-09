@@ -39,7 +39,7 @@ describe('buildHoverMarkdown', () => {
       nowMs: 1778500800000,
     });
     expect(md).toContain('PR #239');
-    expect(md).toContain('https://example.com/pr/239');
+    expect(md).toContain(encodeURIComponent(JSON.stringify('https://example.com/pr/239')));
   });
 
   it('shows the GitHub sign-in prompt when hostMissing=github-auth', () => {

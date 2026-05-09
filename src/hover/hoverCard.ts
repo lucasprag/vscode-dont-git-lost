@@ -53,7 +53,7 @@ export function buildHoverMarkdown(input: HoverInput): string {
 }
 
 function encodeArg(value: string): string {
-  return value;
+  return encodeURIComponent(JSON.stringify(value));
 }
 
 function escape(s: string): string {
