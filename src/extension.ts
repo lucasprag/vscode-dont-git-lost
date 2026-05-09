@@ -10,6 +10,7 @@ import { Navigator } from './timeTravel/navigator';
 import { HistoricalDocProvider, SCHEME, buildHistoricalUri, readPayload } from './timeTravel/historicalDoc';
 import { StatusBadge } from './timeTravel/statusBadge';
 import type { CommitInfo } from './types';
+import { AuthBroker } from './auth/authBroker';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const gitEngine = new GitEngine();
@@ -33,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
 
   const contentCache = new ContentCache((repoRoot, sha, relPath) => gitEngine.show(repoRoot, sha, relPath));
+  const auth = new AuthBroker();
 
   // Navigator's fetcher uses the working-copy file path as its key.
   const navigator = new Navigator(async (filePath) => {
@@ -145,7 +147,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(
     new LineBlame(blameCache, repoLocator),
     vscode.workspace.registerTextDocumentContentProvider(SCHEME, provider),
-    vscode.languages.registerHoverProvider({ scheme: 'file' }, new GitLostHoverProvider(blameCache, repoLocator)),
+    vscode.languages.registerHoverProvider({ scheme: 'file' }, new GitLostHoverProvider(gitEngine, blameCache, repoLocator, auth)),
+    vscode.commands.registerCommand('gitlost.signInGithub', async () => {
+      await auth.getGithubToken(false);
+    }),
     statusBadge,
 
     vscode.commands.registerCommand('gitlost.timeTravel.back', async () => {
