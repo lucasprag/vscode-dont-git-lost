@@ -253,12 +253,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     diffDecorations.clear(left);
     diffDecorations.clear(right);
 
+    // Tab title is set once (when the diff input is first created) and VS Code
+    // ignores subsequent title changes when re-invoking vscode.diff with the
+    // same URIs. So we keep it static — the dynamic sha info lives in the
+    // bottom-right status badge.
+    const filename = relPath.split('/').pop() ?? relPath;
+    const title = `${filename} (diff)`;
+
     const existing = findDiffTab(left, right);
     if (existing) {
       // Tab already open — focus it. The provider's onDidChange has already
-      // fired, so VS Code will re-fetch and re-render the diff.
-      const filename = relPath.split('/').pop() ?? relPath;
-      const title = `${filename} (${parentSha.slice(0, 7)} ↔ ${target.sha.slice(0, 7)})`;
+      // fired, so VS Code will re-fetch and re-render the diff content.
       await vscode.commands.executeCommand('vscode.diff', left, right, title, {
         viewColumn: existing.group.viewColumn,
         preview: false,
@@ -266,8 +271,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       return;
     }
 
-    const filename = relPath.split('/').pop() ?? relPath;
-    const title = `${filename} (${parentSha.slice(0, 7)} ↔ ${target.sha.slice(0, 7)})`;
     await vscode.commands.executeCommand('vscode.diff', left, right, title, {
       viewColumn: fallbackColumn,
       preview: false,
