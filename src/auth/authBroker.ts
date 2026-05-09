@@ -4,7 +4,7 @@ import { readConfig } from '../config';
 export class AuthBroker {
   async getGithubToken(silent: boolean): Promise<string | undefined> {
     try {
-      const session = await vscode.authentication.getSession('github', ['repo'], { createIfNone: !silent, silent });
+      const session = await vscode.authentication.getSession('github', ['read:user'], { createIfNone: !silent, silent });
       return session?.accessToken;
     } catch {
       return undefined;
