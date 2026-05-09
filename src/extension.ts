@@ -83,9 +83,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const navKeyForActive = (): string | undefined => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return undefined;
-    if (editor.document.uri.scheme === 'file') return editor.document.uri.fsPath;
+    if (editor.document.uri.scheme === 'file') return editor.document.uri.fsPath.replace(/\\/g, '/');
     const payload = readPayload(editor.document.uri);
-    if (payload) return `${payload.repoRoot}/${payload.relPath}`;
+    if (payload) return `${payload.repoRoot.replace(/\\/g, '/')}/${payload.relPath}`;
     return undefined;
   };
 
@@ -101,7 +101,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (target === 'head') {
       const payload = readPayload(editor.document.uri);
       if (!payload) return;
-      const fileUri = vscode.Uri.file(`${payload.repoRoot}/${payload.relPath}`);
+      const fileUri = vscode.Uri.file(`${payload.repoRoot.replace(/\\/g, '/')}/${payload.relPath}`);
       await vscode.window.showTextDocument(fileUri, { viewColumn: editor.viewColumn ?? vscode.ViewColumn.Active, preview: false });
       return;
     }
