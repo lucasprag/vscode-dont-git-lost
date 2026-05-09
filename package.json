@@ -1,6 +1,7 @@
 {
   "name": "git-lost",
   "displayName": "Git Lost",
+  "icon": "icon.png",
   "description": "Step through any file's history in the editor. Subdued blame, rich hover, lightweight.",
   "version": "0.1.0",
   "publisher": "lucasprag",
