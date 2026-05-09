@@ -15,16 +15,28 @@ const payloads = new Map<string, UriPayload>();
 export function buildHistoricalUri(payload: UriPayload): vscode.Uri {
   const key = `${payload.repoRoot}|${payload.relPath}|${payload.sha}`;
   payloads.set(key, payload);
-  // Path is forward-slash-separated and used by VS Code as the tab label
-  // (basename of the path). We append the short sha as a directory-like
-  // segment so multiple historical tabs of the same file don't collide
-  // and the user can tell which commit each tab is showing.
+  // Decorate the path so VS Code's tab label (the URI basename) reads like
+  // "filename [abc1234].ext" — making it obvious this is a historical view
+  // and which commit it belongs to. The original extension is preserved at
+  // the end so syntax highlighting still works.
   const shortSha = payload.sha.slice(0, 7);
   return vscode.Uri.from({
     scheme: SCHEME,
-    path: `/${shortSha}/${payload.relPath}`,
+    path: decoratePath(payload.relPath, shortSha),
     query: `key=${encodeURIComponent(key)}`,
   });
+}
+
+function decoratePath(relPath: string, shortSha: string): string {
+  const lastSlash = relPath.lastIndexOf('/');
+  const dir = lastSlash >= 0 ? relPath.slice(0, lastSlash + 1) : '';
+  const filename = lastSlash >= 0 ? relPath.slice(lastSlash + 1) : relPath;
+  const lastDot = filename.lastIndexOf('.');
+  // lastDot <= 0 covers no-extension files and dotfiles (e.g. ".gitignore").
+  if (lastDot <= 0) return `/${dir}${filename} [${shortSha}]`;
+  const name = filename.slice(0, lastDot);
+  const ext = filename.slice(lastDot);
+  return `/${dir}${name} [${shortSha}]${ext}`;
 }
 
 export function readPayload(uri: vscode.Uri): UriPayload | undefined {
