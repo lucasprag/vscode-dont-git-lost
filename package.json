@@ -1,0 +1,102 @@
+{
+  "name": "git-lost",
+  "displayName": "Git Lost",
+  "description": "Step through any file's history in the editor. Subdued blame, rich hover, lightweight.",
+  "version": "0.1.0",
+  "publisher": "lucasprag",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucasprag/vscode-git-lost"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["SCM Providers", "Other"],
+  "keywords": ["git", "blame", "history", "lightweight", "gitlens-alternative"],
+  "main": "./dist/extension.js",
+  "extensionDependencies": ["vscode.git"],
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      { "command": "gitlost.timeTravel.back", "title": "Git Lost: Previous Version", "icon": "$(arrow-left)" },
+      { "command": "gitlost.timeTravel.forward", "title": "Git Lost: Next Version", "icon": "$(arrow-right)" },
+      { "command": "gitlost.timeTravel.returnToHead", "title": "Git Lost: Return to HEAD", "icon": "$(home)" },
+      { "command": "gitlost.copySha", "title": "Git Lost: Copy SHA" },
+      { "command": "gitlost.openUrl", "title": "Git Lost: Open URL" },
+      { "command": "gitlost.signInGithub", "title": "Git Lost: Sign in to GitHub" }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "gitlost.timeTravel.back",
+          "group": "navigation@1",
+          "when": "gitlost:hasGitHistory && (resourceScheme == file || resourceScheme == git-lost)"
+        },
+        {
+          "command": "gitlost.timeTravel.forward",
+          "group": "navigation@2",
+          "when": "gitlost:hasGitHistory && gitlost:canGoForward"
+        },
+        {
+          "command": "gitlost.timeTravel.returnToHead",
+          "group": "navigation@3",
+          "when": "resourceScheme == git-lost"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Git Lost",
+      "properties": {
+        "gitlost.blame.enabled": {
+          "type": "boolean", "default": true,
+          "description": "Show the inline blame annotation on the current line."
+        },
+        "gitlost.blame.format": {
+          "type": "string", "default": "${author}, ${ago} • ${message}",
+          "description": "Annotation template. Tokens: ${author}, ${ago}, ${date}, ${sha}, ${message}, ${pr}."
+        },
+        "gitlost.blame.messageMaxLength": {
+          "type": "number", "default": 80,
+          "description": "Maximum number of characters of the commit message shown inline."
+        },
+        "gitlost.timeTravel.enabled": {
+          "type": "boolean", "default": true,
+          "description": "Show back/forward buttons in the editor toolbar to step through file history."
+        },
+        "gitlost.host.gitlabToken": {
+          "type": "string", "default": "",
+          "markdownDescription": "Personal access token for GitLab (scope: `read_api`). [Create one](https://gitlab.com/-/profile/personal_access_tokens)."
+        },
+        "gitlost.host.bitbucketToken": {
+          "type": "string", "default": "",
+          "markdownDescription": "App password for Bitbucket (scopes: `account:read`, `pullrequest:read`). [Create one](https://bitbucket.org/account/settings/app-passwords/)."
+        },
+        "gitlost.host.selfHosted": {
+          "type": "object", "default": {},
+          "description": "Self-hosted host overrides, e.g. {\"git.company.com\": {\"type\": \"gitlab\", \"baseUrl\": \"https://git.company.com/api/v4\"}}."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package",
+    "vscode:prepublish": "node build.mjs --production"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.3.0"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.0",
+    "lru-cache": "^10.2.0"
+  }
+}
