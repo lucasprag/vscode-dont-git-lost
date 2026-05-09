@@ -37,26 +37,36 @@ export interface DiffState {
   parentPath: string;    // path at the parent commit (handles renames)
 }
 
+// State maps are keyed by uri.toString() so we can freely decorate the URI
+// path (e.g. with " (git history)") without having to parse-and-undo the
+// decoration for lookup.
 const overlayStates = new Map<string, OverlayState>();
-const diffStates = new Map<string, DiffState>();
+const diffStates = new Map<string, { side: 'parent' | 'current'; state: DiffState }>();
 
 function escapeRepoRoot(repoRoot: string): string {
-  // Encode "/" so the repo path is collapsible to a single URI segment.
   return encodeURIComponent(repoRoot);
 }
 
-function overlayKey(repoRoot: string, relPath: string): string {
-  return `${escapeRepoRoot(repoRoot)}|${relPath}`;
-}
-
-function diffKey(repoRoot: string, relPath: string): string {
-  return `${escapeRepoRoot(repoRoot)}|${relPath}`;
+/**
+ * Insert a suffix into the relPath right BEFORE the file extension so the
+ * decorated basename still ends in the original extension (preserves syntax
+ * highlighting). For files without extensions, append at the end.
+ */
+function decorateRelPath(relPath: string, suffix: string): string {
+  const lastSlash = relPath.lastIndexOf('/');
+  const dir = lastSlash >= 0 ? relPath.slice(0, lastSlash + 1) : '';
+  const filename = lastSlash >= 0 ? relPath.slice(lastSlash + 1) : relPath;
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot <= 0) return `${dir}${filename} ${suffix}`;
+  const name = filename.slice(0, lastDot);
+  const ext = filename.slice(lastDot);
+  return `${dir}${name} ${suffix}${ext}`;
 }
 
 export function buildOverlayUri(repoRoot: string, relPath: string): vscode.Uri {
   return vscode.Uri.from({
     scheme: SCHEME,
-    path: `/overlay/${escapeRepoRoot(repoRoot)}/${relPath}`,
+    path: `/overlay/${escapeRepoRoot(repoRoot)}/${decorateRelPath(relPath, '(git history)')}`,
   });
 }
 
@@ -76,29 +86,13 @@ export function buildDiffCurrentUri(repoRoot: string, relPath: string): vscode.U
 
 export function readOverlayState(uri: vscode.Uri): OverlayState | undefined {
   if (uri.scheme !== SCHEME || !uri.path.startsWith('/overlay/')) return undefined;
-  const rest = uri.path.slice('/overlay/'.length);
-  const idx = rest.indexOf('/');
-  if (idx < 0) return undefined;
-  const repoRootEsc = rest.slice(0, idx);
-  const relPath = rest.slice(idx + 1);
-  return overlayStates.get(`${repoRootEsc}|${relPath}`);
+  return overlayStates.get(uri.toString());
 }
 
 export function readDiffState(uri: vscode.Uri): { side: 'parent' | 'current'; state: DiffState } | undefined {
   if (uri.scheme !== SCHEME) return undefined;
-  let side: 'parent' | 'current';
-  let prefix: string;
-  if (uri.path.startsWith('/diff-parent/')) { side = 'parent'; prefix = '/diff-parent/'; }
-  else if (uri.path.startsWith('/diff-current/')) { side = 'current'; prefix = '/diff-current/'; }
-  else return undefined;
-  const rest = uri.path.slice(prefix.length);
-  const idx = rest.indexOf('/');
-  if (idx < 0) return undefined;
-  const repoRootEsc = rest.slice(0, idx);
-  const relPath = rest.slice(idx + 1);
-  const state = diffStates.get(`${repoRootEsc}|${relPath}`);
-  if (!state) return undefined;
-  return { side, state };
+  if (!uri.path.startsWith('/diff-parent/') && !uri.path.startsWith('/diff-current/')) return undefined;
+  return diffStates.get(uri.toString());
 }
 
 /**
@@ -146,17 +140,18 @@ export class HistoricalDocProvider implements vscode.TextDocumentContentProvider
 
   /** Update overlay state for a file; fires onDidChange so the editor refreshes. */
   setOverlay(state: OverlayState): vscode.Uri {
-    overlayStates.set(overlayKey(state.repoRoot, state.relPath), state);
     const uri = buildOverlayUri(state.repoRoot, state.relPath);
+    overlayStates.set(uri.toString(), state);
     this._onDidChange.fire(uri);
     return uri;
   }
 
   /** Update diff state for a file; fires onDidChange for both sides. */
   setDiff(state: DiffState): { left: vscode.Uri; right: vscode.Uri } {
-    diffStates.set(diffKey(state.repoRoot, state.relPath), state);
     const left = buildDiffParentUri(state.repoRoot, state.relPath);
     const right = buildDiffCurrentUri(state.repoRoot, state.relPath);
+    diffStates.set(left.toString(), { side: 'parent', state });
+    diffStates.set(right.toString(), { side: 'current', state });
     this._onDidChange.fire(left);
     this._onDidChange.fire(right);
     return { left, right };
