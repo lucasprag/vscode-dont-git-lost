@@ -11,6 +11,7 @@ import { HistoricalDocProvider, SCHEME, buildHistoricalUri, readPayload } from '
 import { StatusBadge } from './timeTravel/statusBadge';
 import type { CommitInfo } from './types';
 import { AuthBroker } from './auth/authBroker';
+import { readConfig } from './config';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const gitEngine = new GitEngine();
@@ -59,8 +60,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const setHasHistoryContext = (hasHistory: boolean) => vscode.commands.executeCommand('setContext', 'gitlost:hasGitHistory', hasHistory);
 
   const updateContextKeys = () => {
+    const cfg = readConfig();
     const editor = vscode.window.activeTextEditor;
-    if (!editor) {
+    if (!editor || !cfg.timeTravelEnabled) {
       setForwardContext(false);
       setHasHistoryContext(false);
       return;
