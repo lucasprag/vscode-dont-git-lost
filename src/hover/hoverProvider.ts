@@ -43,11 +43,11 @@ export class GitLostHoverProvider implements vscode.HoverProvider {
           ]);
           if (host.type === 'github' && !(await this.auth.getGithubToken(true))) {
             hostMissing = 'github-auth';
+          } else if (host.type === 'gitlab' && !this.auth.getGitlabToken()) {
+            hostMissing = 'gitlab-token';
+          } else if (host.type === 'bitbucket' && !this.auth.getBitbucketToken()) {
+            hostMissing = 'bitbucket-token';
           }
-        } else if (host.type === 'gitlab') {
-          hostMissing = this.auth.getGitlabToken() ? undefined : 'gitlab-token';
-        } else if (host.type === 'bitbucket') {
-          hostMissing = this.auth.getBitbucketToken() ? undefined : 'bitbucket-token';
         }
       }
     } catch { /* origin not set or not a github/gitlab/bitbucket repo; show commit-only card */ }
