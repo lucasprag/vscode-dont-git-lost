@@ -19,7 +19,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
 
   context.subscriptions.push(
-    new LineBlame(gitEngine, blameCache, repoLocator),
+    new LineBlame(blameCache, repoLocator),
     vscode.languages.registerHoverProvider({ scheme: 'file' }, new GitLostHoverProvider(blameCache, repoLocator)),
     vscode.commands.registerCommand('gitlost.copySha', async (sha: string) => {
       await vscode.env.clipboard.writeText(sha);

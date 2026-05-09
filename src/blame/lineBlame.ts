@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { formatAnnotation } from './annotation';
-import type { GitEngine } from '../git/gitEngine';
 import type { BlameCache } from '../git/blameCache';
 import type { RepoLocator } from '../git/repoLocator';
 import { readConfig } from '../config';
@@ -20,7 +19,6 @@ export class LineBlame implements vscode.Disposable {
   private subscriptions: vscode.Disposable[] = [];
 
   constructor(
-    private gitEngine: GitEngine,
     private blameCache: BlameCache,
     private repoLocator: RepoLocator,
   ) {
