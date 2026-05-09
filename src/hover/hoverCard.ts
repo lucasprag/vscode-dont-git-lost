@@ -57,5 +57,11 @@ function encodeArg(value: string): string {
 }
 
 function escape(s: string): string {
-  return s.replace(/[<>]/g, (c) => (c === '<' ? '&lt;' : '&gt;'));
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/`/g, '\\`')
+    .replace(/\*/g, '\\*')
+    .replace(/_/g, '\\_');
 }
