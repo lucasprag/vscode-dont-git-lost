@@ -21,6 +21,8 @@
   "contributes": {
     "commands": [
       { "command": "gitlost.timeTravel.back", "title": "Git Lost: Previous Version", "icon": "$(arrow-left)" },
+      { "command": "gitlost.timeTravel.backWithDiff", "title": "Git Lost: Previous Version (Show Diff)", "icon": "$(chevron-left)" },
+      { "command": "gitlost.timeTravel.forwardWithDiff", "title": "Git Lost: Next Version (Show Diff)", "icon": "$(chevron-right)" },
       { "command": "gitlost.timeTravel.forward", "title": "Git Lost: Next Version", "icon": "$(arrow-right)" },
       { "command": "gitlost.timeTravel.returnToHead", "title": "Git Lost: Return to HEAD", "icon": "$(home)" },
       { "command": "gitlost.copySha", "title": "Git Lost: Copy SHA" },
@@ -35,13 +37,23 @@
           "when": "gitlost:hasGitHistory && (resourceScheme == file || resourceScheme == git-lost)"
         },
         {
-          "command": "gitlost.timeTravel.forward",
+          "command": "gitlost.timeTravel.backWithDiff",
           "group": "navigation@2",
+          "when": "gitlost:hasGitHistory && (resourceScheme == file || resourceScheme == git-lost)"
+        },
+        {
+          "command": "gitlost.timeTravel.forwardWithDiff",
+          "group": "navigation@3",
+          "when": "gitlost:hasGitHistory && gitlost:canGoForward"
+        },
+        {
+          "command": "gitlost.timeTravel.forward",
+          "group": "navigation@4",
           "when": "gitlost:hasGitHistory && gitlost:canGoForward"
         },
         {
           "command": "gitlost.timeTravel.returnToHead",
-          "group": "navigation@3",
+          "group": "navigation@5",
           "when": "resourceScheme == git-lost"
         }
       ]

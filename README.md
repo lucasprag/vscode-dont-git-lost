@@ -15,7 +15,7 @@ If the file has unsaved edits, the historical view opens in a side editor group 
 The line under the cursor is annotated at the end of the line:
 
 ```
-Alex Willemsma, 11 years ago • First working version of cleaned-up production logs.
+Lucas, 11 years ago • First working version of cleaned-up production logs.
 ```
 
 The format is configurable via `gitlost.blame.format`.

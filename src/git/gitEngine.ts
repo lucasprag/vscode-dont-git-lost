@@ -64,6 +64,27 @@ export class GitEngine {
     const { stdout } = await this.exec(repoRoot, ['log', '-1', '--format=%b', sha]);
     return stdout.replace(/\n+$/, '');
   }
+
+  async parentSha(repoRoot: string, sha: string): Promise<string | undefined> {
+    try {
+      const { stdout } = await this.exec(repoRoot, ['rev-parse', `${sha}^`]);
+      return stdout.trim();
+    } catch {
+      return undefined;
+    }
+  }
+
+  async diffUnified(repoRoot: string, fromSha: string, toSha: string, relPath: string): Promise<string> {
+    try {
+      const { stdout } = await this.exec(repoRoot, [
+        'diff', '--unified=0', '--no-color',
+        `${fromSha}..${toSha}`, '--', relPath,
+      ]);
+      return stdout;
+    } catch {
+      return '';
+    }
+  }
 }
 
 export function parseLogFollow(out: string): CommitRef[] {

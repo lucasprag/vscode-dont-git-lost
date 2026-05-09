@@ -9,6 +9,8 @@ import { GitLostHoverProvider } from './hover/hoverProvider';
 import { Navigator } from './timeTravel/navigator';
 import { HistoricalDocProvider, SCHEME, buildHistoricalUri, readPayload } from './timeTravel/historicalDoc';
 import { StatusBadge } from './timeTravel/statusBadge';
+import { DiffDecorations } from './timeTravel/diffDecorations';
+import { parseUnifiedDiff } from './timeTravel/diffParser';
 import type { CommitInfo } from './types';
 import { AuthBroker } from './auth/authBroker';
 import { readConfig } from './config';
@@ -55,6 +57,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
 
   const provider = new HistoricalDocProvider(contentCache);
+  const diffDecorations = new DiffDecorations();
 
   const setForwardContext = (canGoForward: boolean) => vscode.commands.executeCommand('setContext', 'gitlost:canGoForward', canGoForward);
   const setHasHistoryContext = (hasHistory: boolean) => vscode.commands.executeCommand('setContext', 'gitlost:hasGitHistory', hasHistory);
@@ -93,6 +96,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     direction: 'back' | 'forward' | 'returnToHead',
     target: { sha: string; prevPath: string } | 'head' | 'noop',
     navKey: string,
+    withDiff = false,
   ) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
@@ -155,6 +159,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const doc = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(doc, { viewColumn, preview: false });
 
+    // Compute and apply diff decorations vs parent commit (only when requested).
+    if (withDiff) {
+      const parent = await gitEngine.parentSha(repoRoot, target.sha);
+      if (parent) {
+        const diffText = await gitEngine.diffUnified(repoRoot, parent, target.sha, target.prevPath);
+        const ranges = parseUnifiedDiff(diffText);
+        diffDecorations.setHunks(uri, ranges);
+      } else {
+        // Root commit — every line is "added". Mark the whole file.
+        const lineCount = doc.lineCount;
+        diffDecorations.setHunks(uri, {
+          added: lineCount > 0 ? [{ start: 1, end: lineCount }] : [],
+          deletedAbove: [],
+        });
+      }
+    } else {
+      diffDecorations.clear(uri);
+    }
+
     // If we just navigated FROM one historical tab TO another in the same column,
     // close the old one so the user has a single time-travel tab open at a time.
     // Don't close the working-copy tab, and don't close when opening Beside (dirty).
@@ -171,12 +194,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await auth.getGithubToken(false);
     }),
     statusBadge,
+    diffDecorations,
 
     vscode.commands.registerCommand('gitlost.timeTravel.back', async () => {
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.back(key);
-      await openTarget('back', target, key);
+      await openTarget('back', target, key, false);
       updateContextKeys();
       statusBadge.refresh();
     }),
@@ -184,7 +208,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.forward(key);
-      await openTarget('forward', target, key);
+      await openTarget('forward', target, key, false);
+      updateContextKeys();
+      statusBadge.refresh();
+    }),
+    vscode.commands.registerCommand('gitlost.timeTravel.backWithDiff', async () => {
+      const key = navKeyForActive();
+      if (!key) return;
+      const target = await navigator.back(key);
+      await openTarget('back', target, key, true);
+      updateContextKeys();
+      statusBadge.refresh();
+    }),
+    vscode.commands.registerCommand('gitlost.timeTravel.forwardWithDiff', async () => {
+      const key = navKeyForActive();
+      if (!key) return;
+      const target = await navigator.forward(key);
+      await openTarget('forward', target, key, true);
       updateContextKeys();
       statusBadge.refresh();
     }),
@@ -192,7 +232,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const key = navKeyForActive();
       if (!key) return;
       navigator.returnToHead(key);
-      await openTarget('returnToHead', 'head', key);
+      await openTarget('returnToHead', 'head', key, false);
       updateContextKeys();
       statusBadge.refresh();
     }),
