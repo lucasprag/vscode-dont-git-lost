@@ -55,3 +55,32 @@ describe('GitEngine.blame', () => {
     expect(lines[1].isUncommitted).toBe(true);
   });
 });
+
+describe('GitEngine.logFollow', () => {
+  it('returns commits that touched the file, newest first, following renames', async () => {
+    repo = await makeTempRepo();
+    const c1 = await repo.commit('a.txt', 'v1\n', 'add a.txt');
+    const c2 = await repo.commit('a.txt', 'v2\n', 'edit a.txt');
+    const c3 = await repo.rename('a.txt', 'b.txt', 'rename to b.txt');
+    const c4 = await repo.commit('b.txt', 'v3\n', 'edit b.txt');
+
+    const engine = new GitEngine();
+    const refs = await engine.logFollow(repo.root, 'b.txt');
+    const shas = refs.map((r) => r.sha);
+    expect(shas).toEqual([c4, c3, c2, c1]);
+    // path-at-commit reflects renames
+    expect(refs[0].prevPath).toBe('b.txt');
+    expect(refs[3].prevPath).toBe('a.txt');
+  });
+});
+
+describe('GitEngine.show', () => {
+  it('returns the file content at a specific sha', async () => {
+    repo = await makeTempRepo();
+    const c1 = await repo.commit('a.txt', 'first\n', 'first');
+    await repo.commit('a.txt', 'second\n', 'second');
+    const engine = new GitEngine();
+    const content = await engine.show(repo.root, c1, 'a.txt');
+    expect(content).toBe('first\n');
+  });
+});

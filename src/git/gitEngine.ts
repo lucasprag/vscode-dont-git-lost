@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { BlameLine, CommitInfo } from '../types';
+import type { BlameLine, CommitInfo, CommitRef } from '../types';
 
 const execFileAsync = promisify(execFile);
 
@@ -40,6 +40,68 @@ export class GitEngine {
     const { stdout } = await this.exec(repoRoot, args);
     return parsePorcelain(stdout);
   }
+
+  async logFollow(repoRoot: string, relPath: string, ref = 'HEAD'): Promise<CommitRef[]> {
+    const { stdout } = await this.exec(repoRoot, [
+      'log',
+      '--follow',
+      '--name-status',
+      '-z',
+      '--format=%H%x00%P%x00',
+      ref,
+      '--',
+      relPath,
+    ]);
+    return parseLogFollow(stdout);
+  }
+
+  async show(repoRoot: string, sha: string, relPath: string): Promise<string> {
+    const { stdout } = await this.exec(repoRoot, ['show', `${sha}:${relPath}`]);
+    return stdout;
+  }
+}
+
+export function parseLogFollow(out: string): CommitRef[] {
+  // Token layout (NUL-separated) per commit:
+  //   <sha> \0 <parents> \0 "" \0 "\n<STATUS>" \0 <path(s)> \0 ...
+  // For M/A:  sha, parents, "", "\nM", path  → next commit starts
+  // For R:    sha, parents, "", "\nR100", oldPath, newPath → next commit starts
+  // We track currentPath going backwards: renames update it to oldPath.
+  const refs: CommitRef[] = [];
+  const tokens = out.split('\0');
+  let i = 0;
+
+  while (i < tokens.length) {
+    const shaToken = tokens[i];
+    // SHA token is exactly 40 hex chars (the format emits it cleanly at start).
+    if (!/^[0-9a-f]{40}$/.test(shaToken)) { i++; continue; }
+
+    const sha = shaToken;
+    // i+1 = parents (may be empty for root commit), i+2 = empty blank separator
+    i += 3; // skip sha, parents, blank
+
+    // i now points to the status token, which has a leading newline: "\nM", "\nR100", etc.
+    if (i >= tokens.length) break;
+    const statusToken = tokens[i].replace(/^\n/, '');
+
+    if (statusToken.startsWith('R')) {
+      // Rename: oldPath at i+1, newPath at i+2
+      const newPath = tokens[i + 2] ?? '';
+      // prevPath for this commit is newPath (the file's name *at* this commit)
+      refs.push({ sha, prevPath: newPath });
+      // Going further back in history, the file was called oldPath — but we
+      // don't need to track that here; git --follow handles it in the log output.
+      i += 3;
+    } else if (/^[AMD]$/.test(statusToken)) {
+      const path = tokens[i + 1] ?? '';
+      refs.push({ sha, prevPath: path });
+      i += 2;
+    } else {
+      i++;
+    }
+  }
+
+  return refs;
 }
 
 export function parsePorcelain(out: string): BlameLine[] {
