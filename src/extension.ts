@@ -107,6 +107,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return undefined;
   };
 
+  /** Extract any git-lost: URIs from a tab (overlay or both diff sides). */
+  const timeTravelUrisOf = (tab: vscode.Tab): vscode.Uri[] => {
+    const uris: vscode.Uri[] = [];
+    if (tab.input instanceof vscode.TabInputText && tab.input.uri.scheme === SCHEME) {
+      uris.push(tab.input.uri);
+    } else if (tab.input instanceof vscode.TabInputTextDiff) {
+      if (tab.input.original.scheme === SCHEME) uris.push(tab.input.original);
+      if (tab.input.modified.scheme === SCHEME) uris.push(tab.input.modified);
+    }
+    return uris;
+  };
+
   const findOverlayTab = (overlayUri: vscode.Uri): vscode.Tab | undefined =>
     findTab((tab) =>
       tab.input instanceof vscode.TabInputText &&
@@ -337,6 +349,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
 
     vscode.window.onDidChangeActiveTextEditor(() => updateContextKeys()),
+
+    // When a time-travel tab closes, forget where the user was so the next
+    // ←/→/‹/› starts from HEAD instead of resuming the previous walk.
+    vscode.window.tabGroups.onDidChangeTabs((event) => {
+      for (const tab of event.closed) {
+        const uris = timeTravelUrisOf(tab);
+        for (const uri of uris) {
+          const payload = readPayload(uri);
+          if (payload) {
+            const navKey = `${payload.repoRoot.replace(/\\/g, '/')}/${payload.relPath}`;
+            navigator.returnToHead(navKey);
+          }
+          provider.clearByUri(uri);
+          diffDecorations.clear(uri);
+        }
+      }
+    }),
   );
 
   updateContextKeys();

@@ -179,4 +179,10 @@ export class HistoricalDocProvider implements vscode.TextDocumentContentProvider
     }
     return '';
   }
+
+  /** Forget any stored slot state for this URI (called when a tab closes). */
+  clearByUri(uri: vscode.Uri): void {
+    overlayStates.delete(uri.toString());
+    diffStates.delete(uri.toString());
+  }
 }
