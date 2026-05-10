@@ -6,7 +6,7 @@ export interface SelfHostedEntry {
   webBaseUrl?: string;
 }
 
-export interface GitLostConfig {
+export interface DontGitLostConfig {
   blameEnabled: boolean;
   blameFormat: string;
   blameMessageMaxLength: number;
@@ -16,8 +16,8 @@ export interface GitLostConfig {
   selfHosted: Record<string, SelfHostedEntry>;
 }
 
-export function readConfig(): GitLostConfig {
-  const c = vscode.workspace.getConfiguration('gitlost');
+export function readConfig(): DontGitLostConfig {
+  const c = vscode.workspace.getConfiguration('dontgitlost');
   return {
     blameEnabled: c.get<boolean>('blame.enabled', true),
     blameFormat: c.get<string>('blame.format', '${author}, ${ago} • ${message}'),

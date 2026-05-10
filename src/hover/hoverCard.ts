@@ -32,21 +32,21 @@ export function buildHoverMarkdown(input: HoverInput): string {
   parts.push(`\`${commit.shortSha}\` • ${date} (${formatAgo(commit.authorTime, nowMs)})`);
 
   const buttons: string[] = [];
-  buttons.push(`[$(clippy) Copy SHA](command:gitlost.copySha?${encodeArg(commit.sha)})`);
+  buttons.push(`[$(clippy) Copy SHA](command:dontgitlost.copySha?${encodeArg(commit.sha)})`);
   if (commitUrl) {
-    buttons.push(`[$(link-external) Open commit](command:gitlost.openUrl?${encodeArg(commitUrl)})`);
+    buttons.push(`[$(link-external) Open commit](command:dontgitlost.openUrl?${encodeArg(commitUrl)})`);
   }
   if (pr) {
-    buttons.push(`[$(git-pull-request) PR #${pr.number}](command:gitlost.openUrl?${encodeArg(pr.url)})`);
+    buttons.push(`[$(git-pull-request) PR #${pr.number}](command:dontgitlost.openUrl?${encodeArg(pr.url)})`);
   }
   parts.push(buttons.join(' &nbsp; '));
 
   if (hostMissing === 'github-auth') {
-    parts.push(`\n[$(sign-in) Sign in to GitHub](command:gitlost.signInGithub)`);
+    parts.push(`\n[$(sign-in) Sign in to GitHub](command:dontgitlost.signInGithub)`);
   } else if (hostMissing === 'gitlab-token') {
-    parts.push(`\n[$(gear) Configure GitLab token](command:workbench.action.openSettings?${encodeArg('gitlost.host.gitlabToken')})`);
+    parts.push(`\n[$(gear) Configure GitLab token](command:workbench.action.openSettings?${encodeArg('dontgitlost.host.gitlabToken')})`);
   } else if (hostMissing === 'bitbucket-token') {
-    parts.push(`\n[$(gear) Configure Bitbucket token](command:workbench.action.openSettings?${encodeArg('gitlost.host.bitbucketToken')})`);
+    parts.push(`\n[$(gear) Configure Bitbucket token](command:workbench.action.openSettings?${encodeArg('dontgitlost.host.bitbucketToken')})`);
   }
 
   return parts.join('\n\n');

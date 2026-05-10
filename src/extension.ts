@@ -5,7 +5,7 @@ import { HistoryCache } from './git/historyCache';
 import { ContentCache } from './git/contentCache';
 import { RepoLocator } from './git/repoLocator';
 import { LineBlame } from './blame/lineBlame';
-import { GitLostHoverProvider } from './hover/hoverProvider';
+import { DontGitLostHoverProvider } from './hover/hoverProvider';
 import { Navigator } from './timeTravel/navigator';
 import {
   HistoricalDocProvider,
@@ -64,8 +64,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const provider = new HistoricalDocProvider(contentCache);
   const diffDecorations = new DiffDecorations();
 
-  const setForwardContext = (canGoForward: boolean) => vscode.commands.executeCommand('setContext', 'gitlost:canGoForward', canGoForward);
-  const setHasHistoryContext = (hasHistory: boolean) => vscode.commands.executeCommand('setContext', 'gitlost:hasGitHistory', hasHistory);
+  const setForwardContext = (canGoForward: boolean) => vscode.commands.executeCommand('setContext', 'dontgitlost:canGoForward', canGoForward);
+  const setHasHistoryContext = (hasHistory: boolean) => vscode.commands.executeCommand('setContext', 'dontgitlost:hasGitHistory', hasHistory);
 
   const updateContextKeys = () => {
     const cfg = readConfig();
@@ -107,7 +107,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return undefined;
   };
 
-  /** Extract any git-lost: URIs from a tab (overlay or both diff sides). */
+  /** Extract any dont-git-lost: URIs from a tab (overlay or both diff sides). */
   const timeTravelUrisOf = (tab: vscode.Tab): vscode.Uri[] => {
     const uris: vscode.Uri[] = [];
     if (tab.input instanceof vscode.TabInputText && tab.input.uri.scheme === SCHEME) {
@@ -180,7 +180,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     } catch {
       if (direction === 'back') await navigator.forward(navKey);
       else if (direction === 'forward') await navigator.back(navKey);
-      vscode.window.setStatusBarMessage(`Git Lost: file not present at ${target.sha.slice(0, 7)}`, 3000);
+      vscode.window.setStatusBarMessage(`Don't Git Lost: file not present at ${target.sha.slice(0, 7)}`, 3000);
       return;
     }
 
@@ -292,14 +292,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(
     new LineBlame(blameCache, repoLocator),
     vscode.workspace.registerTextDocumentContentProvider(SCHEME, provider),
-    vscode.languages.registerHoverProvider({ scheme: 'file' }, new GitLostHoverProvider(gitEngine, blameCache, repoLocator, auth)),
-    vscode.commands.registerCommand('gitlost.signInGithub', async () => {
+    vscode.languages.registerHoverProvider({ scheme: 'file' }, new DontGitLostHoverProvider(gitEngine, blameCache, repoLocator, auth)),
+    vscode.commands.registerCommand('dontgitlost.signInGithub', async () => {
       await auth.getGithubToken(false);
     }),
     statusBadge,
     diffDecorations,
 
-    vscode.commands.registerCommand('gitlost.timeTravel.back', async () => {
+    vscode.commands.registerCommand('dontgitlost.timeTravel.back', async () => {
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.back(key);
@@ -307,7 +307,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       updateContextKeys();
       statusBadge.refresh();
     }),
-    vscode.commands.registerCommand('gitlost.timeTravel.forward', async () => {
+    vscode.commands.registerCommand('dontgitlost.timeTravel.forward', async () => {
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.forward(key);
@@ -315,7 +315,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       updateContextKeys();
       statusBadge.refresh();
     }),
-    vscode.commands.registerCommand('gitlost.timeTravel.backWithDiff', async () => {
+    vscode.commands.registerCommand('dontgitlost.timeTravel.backWithDiff', async () => {
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.back(key);
@@ -323,7 +323,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       updateContextKeys();
       statusBadge.refresh();
     }),
-    vscode.commands.registerCommand('gitlost.timeTravel.forwardWithDiff', async () => {
+    vscode.commands.registerCommand('dontgitlost.timeTravel.forwardWithDiff', async () => {
       const key = navKeyForActive();
       if (!key) return;
       const target = await navigator.forward(key);
@@ -331,7 +331,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       updateContextKeys();
       statusBadge.refresh();
     }),
-    vscode.commands.registerCommand('gitlost.timeTravel.returnToHead', async () => {
+    vscode.commands.registerCommand('dontgitlost.timeTravel.returnToHead', async () => {
       const key = navKeyForActive();
       if (!key) return;
       navigator.returnToHead(key);
@@ -340,11 +340,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       statusBadge.refresh();
     }),
 
-    vscode.commands.registerCommand('gitlost.copySha', async (sha: string) => {
+    vscode.commands.registerCommand('dontgitlost.copySha', async (sha: string) => {
       await vscode.env.clipboard.writeText(sha);
-      vscode.window.setStatusBarMessage(`Git Lost: copied ${sha.slice(0, 7)}`, 2000);
+      vscode.window.setStatusBarMessage(`Don't Git Lost: copied ${sha.slice(0, 7)}`, 2000);
     }),
-    vscode.commands.registerCommand('gitlost.openUrl', async (url: string) => {
+    vscode.commands.registerCommand('dontgitlost.openUrl', async (url: string) => {
       await vscode.env.openExternal(vscode.Uri.parse(url));
     }),
 

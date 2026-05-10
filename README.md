@@ -1,46 +1,101 @@
-# Git Lost
+# Don't Git Lost
 
-Step through any file's history without leaving the editor. Subdued inline blame. Rich hover. Lightweight.
+**Step through any file's history without leaving the editor.**
+
+A focused, lightweight git-history tool for VS Code. Three small features that answer the question: *what happened to this file before now?*
+
+> Screenshots and GIFs coming soon.
+
+---
+
+## What it does
+
+- **Walk through commits** that touched the file you're looking at — without ever opening the terminal
+- **See who wrote each line** with a subdued blame annotation that follows your cursor
+- **Get the full story on hover** — author photo, full commit message, links to the commit and PR
+- **Review what changed** in any past commit with a real green/red diff view
+
+---
 
 ## Features
 
-### File time-travel
+### Time-travel through your file's history
 
-Two arrow buttons (◀ ▶) appear in the editor toolbar. Click ◀ to load the file as it was at the previous commit that touched it; click ▶ to step forward. The home button (⌂) returns you to the working copy. Status bar shows which commit is being viewed.
+Five buttons in the editor toolbar let you step through every commit that touched the active file:
 
-If the file has unsaved edits, the historical view opens in a side editor group so the dirty tab is preserved.
+- ← previous version, with green/red gutter overlay showing what that commit changed
+- ‹ previous version in a side-by-side diff editor
+- › next version in a diff editor
+- → next version with gutter overlay
+- ⌂ return to the current working copy
 
-### Inline current-line blame
+Each navigation **updates the same tab in place** — no tab pile-up. The status bar shows which commit you're viewing.
 
-The line under the cursor is annotated at the end of the line:
+### Inline blame for the current line
+
+The line where your cursor sits is annotated at the end of the line:
 
 ```
-Lucas, 11 years ago • First working version of cleaned-up production logs.
+Alex Willemsma, 11 years ago • First working version of cleaned-up production logs.
 ```
 
-The format is configurable via `gitlost.blame.format`.
+- Updates as you move the cursor (debounced)
+- Hides on uncommitted lines
+- Format is fully configurable
 
-### Hover card
+### Rich commit hover card
 
-Hover over the blame annotation to reveal a card with:
+Hover the blame annotation to reveal a card with:
 
-- Author avatar (from GitHub/GitLab/Bitbucket)
-- Full commit message
-- Short SHA, absolute date, relative time
-- Copy SHA, Open commit, Open PR buttons
+- Author photo (from GitHub, GitLab, or Bitbucket)
+- Full multi-line commit message
+- Short SHA, absolute date, and relative time
+- **Copy SHA** to clipboard
+- **Open commit** in your browser
+- **Open PR** that introduced the change (when available)
+
+Works out of the box with public repos. For private repos, sign in once via VS Code's GitHub account or paste a GitLab/Bitbucket token in settings.
+
+---
+
+## Why this exists
+
+GitLens is great but heavy. **Don't Git Lost** focuses on the time-travel workflow: walking back through a file's history, understanding what changed, and getting back to work. That's it.
+
+- Small bundle, fast activation
+- No feature gating, no telemetry
+- Open source
+
+---
 
 ## Settings
 
-| Setting | Default | Description |
+| Setting | Default | What it does |
 |---|---|---|
-| `gitlost.blame.enabled` | `true` | Show the inline blame annotation |
-| `gitlost.blame.format` | `${author}, ${ago} • ${message}` | Annotation template (tokens: `${author}`, `${ago}`, `${date}`, `${sha}`, `${message}`, `${pr}`) |
-| `gitlost.blame.messageMaxLength` | `80` | Max chars of the commit message shown inline |
-| `gitlost.timeTravel.enabled` | `true` | Show back/forward toolbar buttons |
-| `gitlost.host.gitlabToken` | `""` | Personal access token for GitLab (scope: `read_api`) |
-| `gitlost.host.bitbucketToken` | `""` | App password for Bitbucket (`username:apppassword`) |
-| `gitlost.host.selfHosted` | `{}` | Self-hosted host overrides |
+| `dontgitlost.blame.enabled` | `true` | Show the inline blame annotation |
+| `dontgitlost.blame.format` | `${author}, ${ago} • ${message}` | Annotation template (`${author}`, `${ago}`, `${date}`, `${sha}`, `${message}`, `${pr}`) |
+| `dontgitlost.blame.messageMaxLength` | `80` | Max characters of the commit message shown inline |
+| `dontgitlost.timeTravel.enabled` | `true` | Show back/forward toolbar buttons |
+| `dontgitlost.host.gitlabToken` | `""` | GitLab personal access token (scope: `read_api`) |
+| `dontgitlost.host.bitbucketToken` | `""` | Bitbucket app password (`username:apppassword`) |
+| `dontgitlost.host.selfHosted` | `{}` | Map of self-hosted hosts (GitHub Enterprise, self-hosted GitLab, etc.) |
+
+---
+
+## Free to use — supported by you
+
+**Don't Git Lost is free.** It's MIT-licensed and fully functional out of the box, with no feature gating.
+
+After a short grace period, a polite popup will appear every few days asking you to support continued development with a **one-time license purchase**:
+
+- One-time payment, lifetime use, unlimited devices
+- One license stops the popup permanently
+- Your license also helps fund bug fixes, VS Code API updates, and new features
+
+If you find this extension useful in your daily work, please consider buying a license — it's the only way the project stays maintained.
+
+---
 
 ## License
 
-MIT.
+[MIT](LICENSE).

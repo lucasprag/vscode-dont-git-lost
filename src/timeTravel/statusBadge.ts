@@ -8,7 +8,7 @@ export class StatusBadge implements vscode.Disposable {
   private subscriptions: vscode.Disposable[] = [];
 
   constructor(_navigator: Navigator, private getCommitMeta: (sha: string) => { authorName: string; authorTime: number } | undefined) {
-    this.item.command = 'gitlost.timeTravel.returnToHead';
+    this.item.command = 'dontgitlost.timeTravel.returnToHead';
     this.subscriptions.push(
       vscode.window.onDidChangeActiveTextEditor(() => this.refresh()),
     );

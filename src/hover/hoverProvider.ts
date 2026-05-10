@@ -8,7 +8,7 @@ import { createHostClient } from '../host/hostClientFactory';
 import type { AuthBroker } from '../auth/authBroker';
 import { readConfig } from '../config';
 
-export class GitLostHoverProvider implements vscode.HoverProvider {
+export class DontGitLostHoverProvider implements vscode.HoverProvider {
   constructor(
     private gitEngine: GitEngine,
     private blameCache: BlameCache,

@@ -3,7 +3,7 @@ import { SCHEME } from './historicalDoc';
 import type { DiffRanges } from './diffParser';
 
 /**
- * Renders GitHub-style diff decorations on `git-lost:` editors.
+ * Renders GitHub-style diff decorations on `dont-git-lost:` editors.
  *
  * Stores hunk data per URI so when the user switches between historical tabs
  * the right decorations appear. Decorations apply to lines as they exist in
@@ -36,7 +36,7 @@ export class DiffDecorations implements vscode.Disposable {
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) this.refresh(editor);
       }),
-      // When the content of a git-lost: doc changes (we fired onDidChange),
+      // When the content of a dont-git-lost: doc changes (we fired onDidChange),
       // VS Code re-renders and may drop existing decorations. Re-apply them.
       vscode.workspace.onDidChangeTextDocument((event) => {
         if (event.document.uri.scheme !== SCHEME) return;

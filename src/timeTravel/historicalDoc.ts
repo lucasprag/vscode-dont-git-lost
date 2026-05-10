@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { ContentCache } from '../git/contentCache';
 
-export const SCHEME = 'git-lost';
+export const SCHEME = 'dont-git-lost';
 
 /**
  * URIs are stable per (mode, repoRoot, relPath) — no sha in the URI. This

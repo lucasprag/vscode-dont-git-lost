@@ -15,7 +15,7 @@ export interface TempRepo {
 }
 
 export async function makeTempRepo(): Promise<TempRepo> {
-  const root = await mkdtemp(join(tmpdir(), 'git-lost-test-'));
+  const root = await mkdtemp(join(tmpdir(), 'dont-git-lost-test-'));
   await exec('git', ['init', '--initial-branch=main'], { cwd: root });
   await exec('git', ['config', 'user.email', 'test@example.com'], { cwd: root });
   await exec('git', ['config', 'user.name', 'Test'], { cwd: root });

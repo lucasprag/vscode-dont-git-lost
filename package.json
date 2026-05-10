@@ -1,6 +1,6 @@
 {
-  "name": "git-lost",
-  "displayName": "Git Lost",
+  "name": "dont-git-lost",
+  "displayName": "Don't Git Lost",
   "icon": "icon.png",
   "description": "Step through any file's history in the editor. Subdued blame, rich hover, lightweight.",
   "version": "0.1.0",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lucasprag/vscode-git-lost"
+    "url": "https://github.com/lucasprag/vscode-dont-git-lost"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -20,72 +20,72 @@
   "activationEvents": ["onStartupFinished"],
   "contributes": {
     "commands": [
-      { "command": "gitlost.timeTravel.back", "title": "Git Lost: Previous Version (Overlay)", "icon": "$(arrow-left)" },
-      { "command": "gitlost.timeTravel.backWithDiff", "title": "Git Lost: Previous Version (Diff Editor)", "icon": "$(chevron-left)" },
-      { "command": "gitlost.timeTravel.forwardWithDiff", "title": "Git Lost: Next Version (Diff Editor)", "icon": "$(chevron-right)" },
-      { "command": "gitlost.timeTravel.forward", "title": "Git Lost: Next Version (Overlay)", "icon": "$(arrow-right)" },
-      { "command": "gitlost.timeTravel.returnToHead", "title": "Git Lost: Return to HEAD", "icon": "$(home)" },
-      { "command": "gitlost.copySha", "title": "Git Lost: Copy SHA" },
-      { "command": "gitlost.openUrl", "title": "Git Lost: Open URL" },
-      { "command": "gitlost.signInGithub", "title": "Git Lost: Sign in to GitHub" }
+      { "command": "dontgitlost.timeTravel.back", "title": "Don't Git Lost: Previous Version (Overlay)", "icon": "$(arrow-left)" },
+      { "command": "dontgitlost.timeTravel.backWithDiff", "title": "Don't Git Lost: Previous Version (Diff Editor)", "icon": "$(chevron-left)" },
+      { "command": "dontgitlost.timeTravel.forwardWithDiff", "title": "Don't Git Lost: Next Version (Diff Editor)", "icon": "$(chevron-right)" },
+      { "command": "dontgitlost.timeTravel.forward", "title": "Don't Git Lost: Next Version (Overlay)", "icon": "$(arrow-right)" },
+      { "command": "dontgitlost.timeTravel.returnToHead", "title": "Don't Git Lost: Return to HEAD", "icon": "$(home)" },
+      { "command": "dontgitlost.copySha", "title": "Don't Git Lost: Copy SHA" },
+      { "command": "dontgitlost.openUrl", "title": "Don't Git Lost: Open URL" },
+      { "command": "dontgitlost.signInGithub", "title": "Don't Git Lost: Sign in to GitHub" }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "gitlost.timeTravel.back",
+          "command": "dontgitlost.timeTravel.back",
           "group": "navigation@1",
-          "when": "gitlost:hasGitHistory && (resourceScheme == file || resourceScheme == git-lost)"
+          "when": "dontgitlost:hasGitHistory && (resourceScheme == file || resourceScheme == dont-git-lost)"
         },
         {
-          "command": "gitlost.timeTravel.backWithDiff",
+          "command": "dontgitlost.timeTravel.backWithDiff",
           "group": "navigation@2",
-          "when": "gitlost:hasGitHistory && (resourceScheme == file || resourceScheme == git-lost)"
+          "when": "dontgitlost:hasGitHistory && (resourceScheme == file || resourceScheme == dont-git-lost)"
         },
         {
-          "command": "gitlost.timeTravel.forwardWithDiff",
+          "command": "dontgitlost.timeTravel.forwardWithDiff",
           "group": "navigation@3",
-          "when": "gitlost:hasGitHistory && gitlost:canGoForward"
+          "when": "dontgitlost:hasGitHistory && dontgitlost:canGoForward"
         },
         {
-          "command": "gitlost.timeTravel.forward",
+          "command": "dontgitlost.timeTravel.forward",
           "group": "navigation@4",
-          "when": "gitlost:hasGitHistory && gitlost:canGoForward"
+          "when": "dontgitlost:hasGitHistory && dontgitlost:canGoForward"
         },
         {
-          "command": "gitlost.timeTravel.returnToHead",
+          "command": "dontgitlost.timeTravel.returnToHead",
           "group": "navigation@5",
-          "when": "resourceScheme == git-lost"
+          "when": "resourceScheme == dont-git-lost"
         }
       ]
     },
     "configuration": {
-      "title": "Git Lost",
+      "title": "Don't Git Lost",
       "properties": {
-        "gitlost.blame.enabled": {
+        "dontgitlost.blame.enabled": {
           "type": "boolean", "default": true,
           "description": "Show the inline blame annotation on the current line."
         },
-        "gitlost.blame.format": {
+        "dontgitlost.blame.format": {
           "type": "string", "default": "${author}, ${ago} • ${message}",
           "description": "Annotation template. Tokens: ${author}, ${ago}, ${date}, ${sha}, ${message}, ${pr}."
         },
-        "gitlost.blame.messageMaxLength": {
+        "dontgitlost.blame.messageMaxLength": {
           "type": "number", "default": 80,
           "description": "Maximum number of characters of the commit message shown inline."
         },
-        "gitlost.timeTravel.enabled": {
+        "dontgitlost.timeTravel.enabled": {
           "type": "boolean", "default": true,
           "description": "Show back/forward buttons in the editor toolbar to step through file history."
         },
-        "gitlost.host.gitlabToken": {
+        "dontgitlost.host.gitlabToken": {
           "type": "string", "default": "",
           "markdownDescription": "Personal access token for GitLab (scope: `read_api`). [Create one](https://gitlab.com/-/profile/personal_access_tokens)."
         },
-        "gitlost.host.bitbucketToken": {
+        "dontgitlost.host.bitbucketToken": {
           "type": "string", "default": "",
           "markdownDescription": "App password for Bitbucket (scopes: `account:read`, `pullrequest:read`). [Create one](https://bitbucket.org/account/settings/app-passwords/)."
         },
-        "gitlost.host.selfHosted": {
+        "dontgitlost.host.selfHosted": {
           "type": "object", "default": {},
           "description": "Self-hosted host overrides, e.g. {\"git.company.com\": {\"type\": \"gitlab\", \"baseUrl\": \"https://git.company.com/api/v4\"}}."
         }

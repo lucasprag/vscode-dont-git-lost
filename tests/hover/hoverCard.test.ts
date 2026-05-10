@@ -26,7 +26,7 @@ describe('buildHoverMarkdown', () => {
     expect(md).toContain('First working version of cleaned-up production logs.');
     expect(md).toContain('Multi-line body here.');
     expect(md).toContain('aaaaaaa');
-    expect(md).toContain('command:gitlost.copySha');
+    expect(md).toContain('command:dontgitlost.copySha');
   });
 
   it('includes a PR button when pr is provided', () => {
@@ -52,7 +52,7 @@ describe('buildHoverMarkdown', () => {
       nowMs: 1778500800000,
     });
     expect(md).toContain('Sign in to GitHub');
-    expect(md).toContain('command:gitlost.signInGithub');
+    expect(md).toContain('command:dontgitlost.signInGithub');
   });
 
   it('shows the GitLab token prompt when hostMissing=gitlab-token', () => {
