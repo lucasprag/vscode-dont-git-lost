@@ -86,13 +86,15 @@ GitLens is great but heavy. **Don't Git Lost** focuses on the time-travel workfl
 
 **Don't Git Lost is free.** It's MIT-licensed and fully functional out of the box, with no feature gating.
 
-After a short grace period, a polite popup will appear every few days asking you to support continued development with a **one-time license purchase**:
+After a 14-day grace period, a polite popup appears about once a month asking you to support continued development with a **one-time license purchase**:
 
 - One-time payment, lifetime use, unlimited devices
 - One license stops the popup permanently
-- Your license also helps fund bug fixes, VS Code API updates, and new features
+- Your license helps fund bug fixes, VS Code API updates, and new features
 
-If you find this extension useful in your daily work, please consider buying a license — it's the only way the project stays maintained.
+The cadence is intentional: this model **relies on long-term value building, not short-term annoyance**. If the extension is genuinely useful to you, you'll feel like supporting it. If it isn't, you've lost nothing — keep using it for free.
+
+If you find Don't Git Lost useful in your daily work, please consider buying a license — it's the only way the project stays maintained.
 
 ---
 
