@@ -36,7 +36,7 @@ Each navigation **updates the same tab in place** — no tab pile-up. The status
 The line where your cursor sits is annotated at the end of the line:
 
 ```
-Jane Dow, 11 years ago • First working version of cleaned-up production logs.
+Jane Doe, 11 years ago • First working version of cleaned-up production logs.
 ```
 
 - Updates as you move the cursor (debounced)
