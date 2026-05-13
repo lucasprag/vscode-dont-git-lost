@@ -36,9 +36,9 @@ Five buttons in the editor toolbar let you step through every commit that touche
 
 Each navigation **updates the same tab in place** — no tab pile-up. The status bar shows which commit you're viewing.
 
-![Stepping back through history with the gutter overlay showing what changed](images/time-travel-overlay.png)
+![Stepping back through history with the gutter overlay showing what changed](images/time-travel-overlay-readme.png)
 
-![Stepping back through history in a side-by-side diff editor](images/time-travel-diff.png)
+![Stepping back through history in a side-by-side diff editor](images/time-travel-diff-readme.png)
 
 ### Inline blame for the current line
 
@@ -52,7 +52,7 @@ Jane Doe, 11 years ago • First working version of cleaned-up production logs.
 - Hides on uncommitted lines
 - Format is fully configurable
 
-![Inline blame annotation at the end of the current line](images/inline-blame.png)
+![Inline blame annotation at the end of the current line](images/inline-blame-readme.png)
 
 ### Rich commit hover card
 
@@ -67,7 +67,7 @@ Hover the blame annotation to reveal a card with:
 
 Works out of the box with public repos. For private repos, sign in once via VS Code's GitHub account or paste a GitLab/Bitbucket token in settings.
 
-![Hover card with author photo, full commit message, and links to the commit and PR](images/commit-hover-card.png)
+![Hover card with author photo, full commit message, and links to the commit and PR](images/commit-hover-card-readme.png)
 
 ---
 
