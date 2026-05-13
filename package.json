@@ -110,6 +110,6 @@
   },
   "dependencies": {
     "@octokit/rest": "^20.0.0",
-    "lru-cache": "^10.2.0"
+    "lru-cache": "^11.3.6"
   }
 }
