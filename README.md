@@ -4,7 +4,12 @@
 
 A focused, lightweight git-history tool for VS Code. Three small features that answer the question: *what happened to this file before now?*
 
-> Screenshots and GIFs coming soon.
+<div align="center">
+  <a href="https://www.loom.com/share/46c006bc45734b2c972f27275d73c937">
+    <img alt="Watch a 2-minute tour of Don't Git Lost" src="https://cdn.loom.com/sessions/thumbnails/46c006bc45734b2c972f27275d73c937-cb30ce9c2fd53fcb-full-play.gif#t=0.1" width="600">
+  </a>
+  <p><a href="https://www.loom.com/share/46c006bc45734b2c972f27275d73c937">▶ Watch the 2-minute tour on Loom</a></p>
+</div>
 
 ---
 
@@ -31,6 +36,10 @@ Five buttons in the editor toolbar let you step through every commit that touche
 
 Each navigation **updates the same tab in place** — no tab pile-up. The status bar shows which commit you're viewing.
 
+![Stepping back through history with the gutter overlay showing what changed](images/time-travel-overlay.png)
+
+![Stepping back through history in a side-by-side diff editor](images/time-travel-diff.png)
+
 ### Inline blame for the current line
 
 The line where your cursor sits is annotated at the end of the line:
@@ -42,6 +51,8 @@ Jane Doe, 11 years ago • First working version of cleaned-up production logs.
 - Updates as you move the cursor (debounced)
 - Hides on uncommitted lines
 - Format is fully configurable
+
+![Inline blame annotation at the end of the current line](images/inline-blame.png)
 
 ### Rich commit hover card
 
@@ -55,6 +66,8 @@ Hover the blame annotation to reveal a card with:
 - **Open PR** that introduced the change (when available)
 
 Works out of the box with public repos. For private repos, sign in once via VS Code's GitHub account or paste a GitLab/Bitbucket token in settings.
+
+![Hover card with author photo, full commit message, and links to the commit and PR](images/commit-hover-card.png)
 
 ---
 
@@ -95,6 +108,16 @@ After a 14-day grace period, a polite popup appears about once a month asking yo
 The cadence is intentional: this model **relies on long-term value building, not short-term annoyance**. If the extension is genuinely useful to you, you'll feel like supporting it. If it isn't, you've lost nothing — keep using it for free.
 
 If you find Don't Git Lost useful in your daily work, please consider buying a license — it's the only way the project stays maintained.
+
+---
+
+## Support
+
+Found a bug, have a feature idea, or just want to say hi? Reach out at:
+
+&#108;&#117;&#99;&#97;&#115;&#112;&#114;&#97;&#103;&#46;&#112;&#114;&#111;&#106;&#101;&#99;&#116;&#115;&#32;&#91;&#97;&#116;&#93;&#32;&#103;&#109;&#97;&#105;&#108;&#32;&#91;&#100;&#111;&#116;&#93;&#32;&#99;&#111;&#109;
+
+(replace `[at]` with `@` and `[dot]` with `.`)
 
 ---
 
