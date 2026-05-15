@@ -29,8 +29,8 @@ A focused, lightweight git-history tool for VS Code. Three small features that a
 Five buttons in the editor toolbar let you step through every commit that touched the active file:
 
 - ← previous version, with green/red gutter overlay showing what that commit changed
-- ‹ previous version in a side-by-side diff editor
-- › next version in a diff editor
+- ◁ previous version in a side-by-side diff editor
+- ▷ next version in a diff editor
 - → next version with gutter overlay
 - ⌂ return to the current working copy
 
@@ -68,6 +68,18 @@ Hover the blame annotation to reveal a card with:
 Works out of the box with public repos. For private repos, sign in once via VS Code's GitHub account or paste a GitLab/Bitbucket token in settings.
 
 ![Hover card with author photo, full commit message, and links to the commit and PR](images/commit-hover-card-readme.png)
+
+---
+
+## Using in Cursor
+
+Cursor's editor toolbar is more compact than VS Code's, so the navigation buttons may be hidden inside the **`...` overflow menu** by default. To pin them as visible icons:
+
+1. Click the **`...`** button at the right edge of any editor's title bar
+2. Click **Configure Editor Title Menu Icons** (or similar wording)
+3. Toggle each **Don't Git Lost** entry to show it as an icon
+
+You only need to do this once — the setting persists across files.
 
 ---
 

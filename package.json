@@ -21,8 +21,8 @@
   "contributes": {
     "commands": [
       { "command": "dontgitlost.timeTravel.back", "title": "Don't Git Lost: Previous Version (Overlay)", "icon": "$(arrow-left)" },
-      { "command": "dontgitlost.timeTravel.backWithDiff", "title": "Don't Git Lost: Previous Version (Diff Editor)", "icon": "$(chevron-left)" },
-      { "command": "dontgitlost.timeTravel.forwardWithDiff", "title": "Don't Git Lost: Next Version (Diff Editor)", "icon": "$(chevron-right)" },
+      { "command": "dontgitlost.timeTravel.backWithDiff", "title": "Don't Git Lost: Previous Version (Diff Editor)", "icon": "$(triangle-left)" },
+      { "command": "dontgitlost.timeTravel.forwardWithDiff", "title": "Don't Git Lost: Next Version (Diff Editor)", "icon": "$(triangle-right)" },
       { "command": "dontgitlost.timeTravel.forward", "title": "Don't Git Lost: Next Version (Overlay)", "icon": "$(arrow-right)" },
       { "command": "dontgitlost.timeTravel.returnToHead", "title": "Don't Git Lost: Return to HEAD", "icon": "$(home)" },
       { "command": "dontgitlost.copySha", "title": "Don't Git Lost: Copy SHA" },
@@ -97,7 +97,7 @@
     "watch": "node build.mjs --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "package": "vsce package",
+    "package": "vsce package --no-dependencies",
     "vscode:prepublish": "node build.mjs --production"
   },
   "devDependencies": {
@@ -111,5 +111,6 @@
   "dependencies": {
     "@octokit/rest": "^20.0.0",
     "lru-cache": "^10.2.0"
-  }
+  },
+  "packageManager": "pnpm@11.1.2"
 }
