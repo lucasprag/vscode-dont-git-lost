@@ -23,6 +23,8 @@ export interface RepoMatch {
 
 export class RepoLocator {
   private api: GitApi | undefined;
+  private readonly _onDidChangeRepositories = new vscode.EventEmitter<void>();
+  readonly onDidChangeRepositories: vscode.Event<void> = this._onDidChangeRepositories.event;
 
   async ensureReady(): Promise<void> {
     if (this.api) return;
@@ -30,6 +32,8 @@ export class RepoLocator {
     if (!ext) throw new Error('vscode.git extension not available');
     if (!ext.isActive) await ext.activate();
     this.api = ext.exports.getAPI(1);
+    this.api.onDidOpenRepository(() => this._onDidChangeRepositories.fire());
+    this.api.onDidCloseRepository(() => this._onDidChangeRepositories.fire());
   }
 
   locate(fileUri: vscode.Uri): RepoMatch | undefined {

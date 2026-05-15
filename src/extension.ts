@@ -349,6 +349,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
 
     vscode.window.onDidChangeActiveTextEditor(() => updateContextKeys()),
+    repoLocator.onDidChangeRepositories(() => updateContextKeys()),
 
     // When a time-travel tab closes, forget where the user was so the next
     // ←/→/‹/› starts from HEAD instead of resuming the previous walk.
