@@ -4,6 +4,7 @@ src/**
 tests/**
 node_modules/**
 images/**
+!images/logo-icon.png
 .gitignore
 .eslintrc*
 build.mjs
