@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { LicenseManager } from '@lucasprag/vscode-license';
 import { GitEngine } from './git/gitEngine';
 import { BlameCache } from './git/blameCache';
 import { HistoryCache } from './git/historyCache';
@@ -23,6 +24,18 @@ import { AuthBroker } from './auth/authBroker';
 import { readConfig } from './config';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  const licenseManager = new LicenseManager(context, {
+    organizationId: '94b4a580-a66a-458c-9cfa-48c8d019f7e5',
+    benefitId: '4b64ee60-743c-41da-8909-3d6866525705',
+    extensionName: "Don't Git Lost",
+    checkoutUrl: 'https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_9SCtvLsLugheFUK5RoD1xeExX3d9RH21Pwx2Z0hFjEL/redirect',
+    commandPrefix: 'dontgitlost.license',
+    keyPrefix: 'LUCASPRAG-',
+    sandbox: false,
+    forcePopup: false,
+  });
+  await licenseManager.initialize();
+
   const gitEngine = new GitEngine();
   const repoLocator = new RepoLocator();
   await repoLocator.ensureReady();
