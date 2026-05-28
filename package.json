@@ -27,7 +27,10 @@
       { "command": "dontgitlost.timeTravel.returnToHead", "title": "Don't Git Lost: Return to HEAD", "icon": "$(home)" },
       { "command": "dontgitlost.copySha", "title": "Don't Git Lost: Copy SHA" },
       { "command": "dontgitlost.openUrl", "title": "Don't Git Lost: Open URL" },
-      { "command": "dontgitlost.signInGithub", "title": "Don't Git Lost: Sign in to GitHub" }
+      { "command": "dontgitlost.signInGithub", "title": "Don't Git Lost: Sign in to GitHub" },
+      { "command": "dontgitlost.license.enter", "title": "Don't Git Lost: Enter License Key" },
+      { "command": "dontgitlost.license.buy", "title": "Don't Git Lost: Buy License" },
+      { "command": "dontgitlost.license.deactivate", "title": "Don't Git Lost: Remove License Key" }
     ],
     "menus": {
       "editor/title": [
@@ -88,6 +91,12 @@
         "dontgitlost.host.selfHosted": {
           "type": "object", "default": {},
           "description": "Self-hosted host overrides, e.g. {\"git.company.com\": {\"type\": \"gitlab\", \"baseUrl\": \"https://git.company.com/api/v4\"}}."
+        },
+        "lucasprag.licenseKeys": {
+          "type": "object",
+          "default": {},
+          "description": "License keys for lucasprag extensions (shared across all lucasprag extensions).",
+          "scope": "application"
         }
       }
     }
@@ -109,6 +118,7 @@
     "vitest": "^1.3.0"
   },
   "dependencies": {
+    "@lucasprag/vscode-license": "file:../vscode-license",
     "@octokit/rest": "^20.0.0",
     "lru-cache": "^10.2.0"
   }
