@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.4] - 2026-05-28
+
+### Changed
+- Test release to verify the publish workflow works end-to-end with the public vscode-license repo.
+
 ## [0.1.3] - 2026-05-28
 
 ### Fixed

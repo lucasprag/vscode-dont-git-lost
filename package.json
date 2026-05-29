@@ -3,7 +3,7 @@
   "displayName": "Don't Git Lost",
   "icon": "images/logo-icon.png",
   "description": "Step through any file's history in the editor. Subdued blame, rich hover, lightweight.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "lucasprag",
   "license": "MIT",
   "repository": {
