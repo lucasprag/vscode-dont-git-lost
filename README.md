@@ -83,16 +83,6 @@ You only need to do this once — the setting persists across files.
 
 ---
 
-## Why this exists
-
-GitLens is great but heavy. **Don't Git Lost** focuses on the time-travel workflow: walking back through a file's history, understanding what changed, and getting back to work. That's it.
-
-- Small bundle, fast activation
-- No feature gating, no telemetry
-- Open source
-
----
-
 ## Settings
 
 | Setting | Default | What it does |
