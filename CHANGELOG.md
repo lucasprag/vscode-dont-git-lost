@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.3] - 2026-05-28
+
+### Fixed
+- Publish workflow clones vscode-license without a token since the repo is public, removing the authentication failure.
+
 ## [0.1.2] - 2026-05-28
 
 ### Fixed
