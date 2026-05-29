@@ -23,15 +23,28 @@ import type { CommitInfo } from './types';
 import { AuthBroker } from './auth/authBroker';
 import { readConfig } from './config';
 
+const SANDBOX = {
+  organizationId: '94b4a580-a66a-458c-9cfa-48c8d019f7e5',
+  benefitId: '4b64ee60-743c-41da-8909-3d6866525705',
+  checkoutUrl: 'https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_9SCtvLsLugheFUK5RoD1xeExX3d9RH21Pwx2Z0hFjEL/redirect',
+};
+
+const LIVE = {
+  organizationId: 'd2232643-dd19-4377-84a8-3c671011baa4',
+  benefitId: '18ac16be-e32b-4508-8a16-e8fe786724c7',
+  checkoutUrl: 'https://buy.polar.sh/polar_cl_c2zhK5M4R3oHqY6SQuEeGphGLvv1eB3JyvQbM409k8i',
+};
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  const isDev = context.extensionMode === vscode.ExtensionMode.Development;
+  const polar = isDev ? SANDBOX : LIVE;
+
   const licenseManager = new LicenseManager(context, {
-    organizationId: '94b4a580-a66a-458c-9cfa-48c8d019f7e5',
-    benefitId: '4b64ee60-743c-41da-8909-3d6866525705',
+    ...polar,
     extensionName: "Don't Git Lost",
-    checkoutUrl: 'https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_9SCtvLsLugheFUK5RoD1xeExX3d9RH21Pwx2Z0hFjEL/redirect',
     commandPrefix: 'dontgitlost.license',
     keyPrefix: 'LUCASPRAG-',
-    sandbox: false,
+    sandbox: isDev,
     forcePopup: false,
   });
   await licenseManager.initialize();

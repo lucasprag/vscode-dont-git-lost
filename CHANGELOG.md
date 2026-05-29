@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.5] - 2026-05-28
+
+### Fixed
+- Use live Polar credentials in production and sandbox credentials in development (automatic switching based on extension mode)
+
 ## [0.1.4] - 2026-05-28
 
 ### Changed
