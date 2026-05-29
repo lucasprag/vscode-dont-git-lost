@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.2] - 2026-05-28
+
+### Fixed
+- Publish workflow now uses `git clone` instead of `actions/checkout` for the vscode-license dependency to avoid the path-outside-workspace restriction.
+
 ## [0.1.1] - 2026-05-28
 
 ### Fixed

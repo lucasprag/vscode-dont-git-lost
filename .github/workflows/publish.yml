@@ -9,11 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: lucasprag/vscode-license
-          token: ${{ secrets.GH_PAT }}
-          path: ../vscode-license
+      - run: git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/lucasprag/vscode-license.git ../vscode-license
       - uses: actions/setup-node@v4
         with:
           node-version: 20
