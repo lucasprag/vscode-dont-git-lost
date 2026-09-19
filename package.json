@@ -93,6 +93,16 @@
         "dontgitlost.host.selfHosted": {
           "type": "object", "default": {},
           "description": "Self-hosted host overrides, e.g. {\"git.company.com\": {\"type\": \"gitlab\", \"baseUrl\": \"https://git.company.com/api/v4\"}}."
+        },
+        "dontgitlost.hover.trigger": {
+          "type": "string",
+          "description": "Where the commit hover card appears.",
+          "enum": ["annotation", "line"],
+          "default": "annotation",
+          "enumDescriptions": [
+            "Only when hovering after the end of the line (e.g. the blame annotation).",
+            "Anywhere on the line (merged with symbol/type hovers)."
+          ]
         }
       }
     }
