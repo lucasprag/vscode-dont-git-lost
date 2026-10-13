@@ -78,6 +78,25 @@
           "type": "number", "default": 80,
           "description": "Maximum number of characters of the commit message shown inline."
         },
+        "dontgitlost.date.format": {
+          "type": "string", "default": "ddd, DD MMM YYYY HH:mm:ss Z",
+          "description": "Format for dates shown in line blame and hover. Uses Moment.js notation."
+        },
+        "dontgitlost.date.timezone": {
+          "type": "string",
+          "enum": [
+            "commit",
+            "current",
+            "utc"
+          ],
+          "enumDescriptions": [
+            "Show commit timestamps at their original timezone",
+            "Show commit timestamps adapted to the current timezone",
+            "Normalize commit timestamps as UTC, without timezone offsets"
+          ],
+          "default": "commit",
+          "description": "The timezone used for displaying commit timestamps."
+        },
         "dontgitlost.timeTravel.enabled": {
           "type": "boolean", "default": true,
           "description": "Show back/forward buttons in the editor toolbar to step through file history."
@@ -115,6 +134,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^20.0.0",
+    "dayjs": "^1.11.23",
     "lru-cache": "^10.2.0"
   }
 }

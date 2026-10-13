@@ -1,4 +1,5 @@
 import type { CommitInfo } from '../types';
+import { formatDate } from '../utils/dateUtils';
 
 export function formatAgo(authorTimeSec: number, nowMs: number): string {
   const diffSec = Math.max(0, Math.floor(nowMs / 1000) - authorTimeSec);
@@ -34,7 +35,7 @@ export function formatAnnotation(
   nowMs: number,
   ctx: AnnotationContext = {}
 ): string {
-  const date = new Date(commit.authorTime * 1000).toISOString().slice(0, 10);
+  const date = formatDate(commit.authorTime, commit.authorTimezone);
   const tokens: Record<string, string> = {
     author: commit.authorName,
     ago: formatAgo(commit.authorTime, nowMs),
