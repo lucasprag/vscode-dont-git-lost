@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { formatAnnotation, formatAgo } from '../../src/blame/annotation';
+import { describe, it, expect, vi } from 'vitest';
 import { FROZEN_NOW_MS } from '../helpers/time';
 import type { CommitInfo } from '../../src/types';
+
+vi.mock('../../src/utils/dateUtils', () => ({
+  formatDate: vi.fn().mockReturnValue('2026-10-13 10:00:00'),
+}));
+
+import { formatAnnotation, formatAgo } from '../../src/blame/annotation';
 
 const commit = (over: Partial<CommitInfo> = {}): CommitInfo => ({
   sha: 'a'.repeat(40),
@@ -9,6 +14,7 @@ const commit = (over: Partial<CommitInfo> = {}): CommitInfo => ({
   authorName: 'Alex Willemsma',
   authorEmail: 'alex@example.com',
   authorTime: 1417000000, // ~Nov 26, 2014
+  authorTimezone: '+0000',
   summary: 'First working version of cleaned-up production logs.',
   body: '',
   ...over,

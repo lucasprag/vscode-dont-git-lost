@@ -3,9 +3,10 @@ export interface CommitInfo {
   shortSha: string;
   authorName: string;
   authorEmail: string;
-  authorTime: number; // unix seconds
-  summary: string;    // first line of message
-  body: string;       // rest of message (may be empty)
+  authorTime: number;     // unix seconds
+  authorTimezone: string; // timezone offset (+0000)
+  summary: string;        // first line of message
+  body: string;           // rest of message (may be empty)
 }
 
 export interface BlameLine {

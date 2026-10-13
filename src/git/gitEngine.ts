@@ -14,6 +14,7 @@ interface PartialCommit {
   authorName?: string;
   authorEmail?: string;
   authorTime?: number;
+  authorTimezone?: string;
   summary?: string;
 }
 
@@ -162,6 +163,8 @@ export function parsePorcelain(out: string): BlameLine[] {
         commit.authorTime = parseInt(line.slice(12), 10);
       } else if (line.startsWith('summary ')) {
         commit.summary = line.slice(8);
+      } else if (line.startsWith('author-tz ')) {
+        commit.authorTimezone = line.slice(10)
       }
       i++;
     }
@@ -187,6 +190,7 @@ function toCommitInfo(p: PartialCommit): CommitInfo {
     authorName: p.authorName ?? '',
     authorEmail: p.authorEmail ?? '',
     authorTime: p.authorTime ?? 0,
+    authorTimezone: p.authorTimezone ?? '+0000',
     summary: p.summary ?? '',
     body: '',
   };

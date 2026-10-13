@@ -1,5 +1,6 @@
 import type { CommitInfo, PrInfo } from '../types';
 import { formatAgo } from '../blame/annotation';
+import { formatDate } from '../utils/dateUtils';
 
 export type HostMissing = 'github-auth' | 'gitlab-token' | 'bitbucket-token';
 
@@ -28,7 +29,7 @@ export function buildHoverMarkdown(input: HoverInput): string {
     parts.push(body);
   }
 
-  const date = new Date(commit.authorTime * 1000).toUTCString();
+  const date = formatDate(commit.authorTime, commit.authorTimezone);
   parts.push(`\`${commit.shortSha}\` • ${date} (${formatAgo(commit.authorTime, nowMs)})`);
 
   const buttons: string[] = [];
